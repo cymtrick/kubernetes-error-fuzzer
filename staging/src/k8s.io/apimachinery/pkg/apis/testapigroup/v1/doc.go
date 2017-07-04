@@ -14,7 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This package runs tests against the apimachinery which require a Scheme
-// TODO Refactor the base types into the machinery and move these tests back.
-// See https://github.com/kubernetes/kubernetes/issues/39611
-package tests
+// +k8s:deepcopy-gen=package,register
+// +k8s:conversion-gen=k8s.io/kubernetes/vendor/k8s.io/apiserver/pkg/apis/example
+// +k8s:openapi-gen=false
+// +k8s:defaulter-gen=TypeMeta
+
+// +groupName=example.apiserver.k8s.io
+package v1 // import "k8s.io/apiserver/pkg/apis/example/v1"
