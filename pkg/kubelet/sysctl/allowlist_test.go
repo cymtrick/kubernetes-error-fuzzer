@@ -52,6 +52,7 @@ func TestNewAllowlist(t *testing.T) {
 }
 
 func TestAllowlist(t *testing.T) {
+	kubelet.
 	type Test struct {
 		sysctl           string
 		hostNet, hostIPC bool

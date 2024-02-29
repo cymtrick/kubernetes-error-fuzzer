@@ -1365,6 +1365,96 @@ func (kl *Kubelet) RlimitStats() (*statsapi.RlimitStats, error) {
 	return kl.StatsProvider.RlimitStats()
 }
 
+// GetRecorder returns a pointer to the recorder.
+func (kl *Kubelet) GetRecorder() *record.EventRecorder {
+	return &kl.recorder
+}
+
+// GetKubeClient returns a pointer to the kube client.
+func (kl *Kubelet) GetKubeClient() *clientset.Interface {
+	return &kl.kubeClient
+}
+
+// GetHeartbeatClient returns a pointer to the heartbeat client.
+func (kl *Kubelet) GetHeartbeatClient() *clientset.Interface {
+	return &kl.heartbeatClient
+}
+
+// GetPodManager returns a pointer to the pod manager.
+func (kl *Kubelet) GetPodManager() *kubepod.Manager {
+	return &kl.podManager
+}
+
+// GetEvictionManager returns a pointer to the eviction manager.
+func (kl *Kubelet) GetEvictionManager() *eviction.Manager {
+	return &kl.evictionManager
+}
+
+// GetProbeManager returns a pointer to the probe manager.
+func (kl *Kubelet) GetProbeManager() *prober.Manager {
+	return &kl.probeManager
+}
+
+// GetSecretManager returns a pointer to the secret manager.
+func (kl *Kubelet) GetSecretManager() *secret.Manager {
+	return &kl.secretManager
+}
+
+// GetConfigMapManager returns a pointer to the config map manager.
+func (kl *Kubelet) GetConfigMapManager() *configmap.Manager {
+	return &kl.configMapManager
+}
+
+// GetVolumeManager returns a pointer to the volume manager.
+func (kl *Kubelet) GetVolumeManager() *volumemanager.VolumeManager {
+	return &kl.volumeManager
+}
+
+// GetStatusManager returns a pointer to the status manager.
+func (kl *Kubelet) GetStatusManager() *status.Manager {
+	return &kl.statusManager
+}
+
+// GetCadvisor returns a pointer to the cAdvisor interface.
+func (kl *Kubelet) GetCadvisor() *cadvisor.Interface {
+	return &kl.cadvisor
+}
+
+// GetCloud returns a pointer to the cloud provider interface.
+func (kl *Kubelet) GetCloud() *cloudprovider.Interface {
+	return &kl.cloud
+}
+
+// GetContainerRuntime returns a pointer to the container runtime.
+func (kl *Kubelet) GetContainerRuntime() *kubecontainer.Runtime {
+	return &kl.containerRuntime
+}
+
+// GetStreamingRuntime returns a pointer to the streaming runtime.
+func (kl *Kubelet) GetStreamingRuntime() *kubecontainer.StreamingRuntime {
+	return &kl.streamingRuntime
+}
+
+// GetRuntimeService returns a pointer to the internal runtime service.
+func (kl *Kubelet) GetRuntimeService() *internalapi.RuntimeService {
+	return &kl.runtimeService
+}
+
+// GetImageManager returns a pointer to the image manager.
+func (kl *Kubelet) GetImageManager() *images.ImageGCManager {
+	return &kl.imageManager
+}
+
+// GetNodeLister returns a pointer to the node lister.
+func (kl *Kubelet) GetNodeLister() *corelisters.NodeLister {
+	return &kl.nodeLister
+}
+
+// GetServiceLister returns a pointer to the service lister.
+func (kl *Kubelet) GetServiceLister() *serviceLister {
+	return &kl.serviceLister
+}
+
 // setupDataDirs creates:
 // 1.  the root directory
 // 2.  the pods directory
