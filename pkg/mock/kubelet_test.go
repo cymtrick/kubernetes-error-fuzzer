@@ -28,7 +28,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -143,6 +142,10 @@ type testServiceLister struct {
 	services []*v1.Service
 }
 
+func (ls testServiceLister) List(labels.Selector) ([]*v1.Service, error) {
+	return ls.services, nil
+}
+
 type TestKubelet struct {
 	kubelet              *kubelet.Kubelet
 	fakeRuntime          *containertest.FakeRuntime
@@ -152,30 +155,6 @@ type TestKubelet struct {
 	fakeClock            *testingclock.FakeClock
 	mounter              mount.Interface
 	volumePlugin         *volumetest.FakeVolumePlugin
-}
-
-type TestingInterface interface {
-	Errorf(format string, args ...interface{})
-}
-
-type fakePodWorkers struct {
-	lock      sync.Mutex
-	syncPodFn kubelet.SyncPodFnType
-	cache     kubecontainer.Cache
-	t         TestingInterface
-
-	triggeredDeletion []types.UID
-	triggeredTerminal []types.UID
-
-	statusLock            sync.Mutex
-	running               map[types.UID]bool
-	terminating           map[types.UID]bool
-	terminated            map[types.UID]bool
-	terminationRequested  map[types.UID]bool
-	finished              map[types.UID]bool
-	removeRuntime         map[types.UID]bool
-	removeContent         map[types.UID]bool
-	terminatingStaticPods map[string]bool
 }
 
 func (tk *TestKubelet) Cleanup() {
@@ -249,7 +228,7 @@ func newTestKubeletWithImageList(
 		t.Fatalf("can't mkdir(%q): %v", *klets.GetRootDir(), err)
 	}
 	*klets.GetSourcesReady() = config.NewSourcesReady(func(_ sets.String) bool { return true })
-	*klets.GetServiceLister() = []*v1.Service
+	*klets.GetServiceLister() = testServiceLister{}
 	*klets.GetServiceHasSynced() = func() bool { return true }
 	*klets.GetNodeHasSynced() = func() bool { return true }
 	*klets.GetNodeLister() = testNodeLister{
@@ -314,7 +293,7 @@ func newTestKubeletWithImageList(
 	*klets.GetReasonCache() = *kubelet.NewReasonCache()
 	*klets.GetPodCache() = containertest.NewFakeCache(*klets.GetContainerRuntime())
 	*klets.GetPodWorkers() = &fakePodWorkers{
-		syncPodFn: *klets.SyncPod,
+		syncPodFn: klets.SyncPod,
 		cache:     *klets.GetPodCache(),
 		t:         t,
 	}
@@ -334,7 +313,7 @@ func newTestKubeletWithImageList(
 	}
 
 	volumeStatsAggPeriod := time.Second * 10
-	*klets.GetResourceAnalyzer() = serverstats.NewResourceAnalyzer(*klets, volumeStatsAggPeriod, *klets.GetRecorder())
+	*klets.GetResourceAnalyzer() = serverstats.NewResourceAnalyzer(klets, volumeStatsAggPeriod, *klets.GetRecorder())
 
 	fakeHostStatsProvider := stats.NewFakeHostStatsProvider()
 
@@ -405,7 +384,7 @@ func newTestKubeletWithImageList(
 	klets.AdmitHandlers().AddPodAdmitHandler(shutdownAdmitHandler)
 
 	// Add this as cleanup predicate pod admitter
-	klets.AdmitHandlers().AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(kubelet.GetNodeAnyWay(), lifecycle.NewAdmissionFailureHandlerStub(), (*klets.GetContainerManager()).UpdatePluginResources))
+	klets.AdmitHandlers().AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(klets.GetNodeAnyWay, lifecycle.NewAdmissionFailureHandlerStub(), (*klets.GetContainerManager()).UpdatePluginResources))
 
 	allPlugins := []volume.VolumePlugin{}
 	plug := &volumetest.FakeVolumePlugin{PluginName: "fake", Host: nil}
@@ -416,8 +395,8 @@ func newTestKubeletWithImageList(
 	}
 
 	var prober volume.DynamicPluginProber // TODO (#51147) inject mock
-	*klets.GetVolumePluginMgr(), err =
-		kubelet.NewInitializedVolumePluginMgr(*klets, *klets.GetSecretManager(), *klets.GetConfigMapManager(), token.NewManager(*klets.GetKubeClient()), &clustertrustbundle.NoopManager{}, allPlugins, prober)
+	klets.GetVolumePluginMgr, err =
+		kubelet.NewInitializedVolumePluginMgr(klets, *klets.GetSecretManager(), *klets.GetConfigMapManager(), token.NewManager(*klets.GetKubeClient()), &clustertrustbundle.NoopManager{}, allPlugins, prober)
 	require.NoError(t, err, "Failed to initialize VolumePluginMgr")
 
 	*klets.GetVolumeManager() = kubeletvolume.NewVolumeManager(
@@ -476,17 +455,17 @@ func TestSyncLoopAbort(t *testing.T) {
 	(kubelet.GetRuntimeState).setRuntimeSync(time.Now())
 	// The syncLoop waits on time.After(resyncInterval), set it really big so that we don't race for
 	// the channel close
-	kubelet.resyncInterval = time.Second * 30
+	kubelet.ResyncInterval = time.Second * 30
 
 	ch := make(chan kubetypes.PodUpdate)
 	close(ch)
 
 	// sanity check (also prevent this test from hanging in the next step)
-	ok := kubelet.syncLoopIteration(ctx, ch, kubelet, make(chan time.Time), make(chan time.Time), make(chan *pleg.PodLifecycleEvent, 1))
+	ok := kubelet.SyncLoopIteration(ctx, ch, kubelet, make(chan time.Time), make(chan time.Time), make(chan *pleg.PodLifecycleEvent, 1))
 	require.False(t, ok, "Expected syncLoopIteration to return !ok since update chan was closed")
 
 	// this should terminate immediately; if it hangs then the syncLoopIteration isn't aborting properly
-	kubelet.syncLoop(ctx, ch, kubelet)
+	kubelet.SyncLoop(ctx, ch, kubelet)
 }
 
 func TestSyncPodsStartPod(t *testing.T) {

@@ -2692,6 +2692,11 @@ func (kl *Kubelet) syncLoop(ctx context.Context, updates <-chan kubetypes.PodUpd
 	}
 }
 
+// SyncLoop is responsible for synchronizing changes and dispatching pods to the given handler.
+func (kl *Kubelet) SyncLoop(ctx context.Context, updates <-chan kubetypes.PodUpdate, handler SyncHandler) {
+	kl.syncLoop(ctx, updates, handler)
+}
+
 // syncLoopIteration reads from various channels and dispatches pods to the
 // given handler.
 //
@@ -2724,6 +2729,10 @@ func (kl *Kubelet) syncLoop(ctx context.Context, updates <-chan kubetypes.PodUpd
 //   - housekeepingCh: trigger cleanup of pods
 //   - health manager: sync pods that have failed or in which one or more
 //     containers have failed health checks
+//
+// SyncLoopIteration reads from various channels and dispatches pods to the given handler.
+// It returns false if the update channel is closed, otherwise it returns true.
+
 func (kl *Kubelet) syncLoopIteration(ctx context.Context, configCh <-chan kubetypes.PodUpdate, handler SyncHandler,
 	syncCh <-chan time.Time, housekeepingCh <-chan time.Time, plegCh <-chan *pleg.PodLifecycleEvent) bool {
 	select {
@@ -2831,6 +2840,15 @@ func (kl *Kubelet) syncLoopIteration(ctx context.Context, configCh <-chan kubety
 		}
 	}
 	return true
+}
+
+// SyncLoopIteration performs a single iteration of the sync loop.
+// It takes a context, a channel for pod updates, a sync handler, and various other channels.
+// It returns a boolean indicating whether the iteration was successful.
+func (kl *Kubelet) SyncLoopIteration(ctx context.Context, configCh <-chan kubetypes.PodUpdate, handler SyncHandler,
+	syncCh <-chan time.Time, housekeepingCh <-chan time.Time, plegCh <-chan *pleg.PodLifecycleEvent) bool {
+	return kl.syncLoopIteration(ctx, configCh, handler,
+		syncCh, housekeepingCh, plegCh)
 }
 
 func handleProbeSync(kl *Kubelet, update proberesults.Update, handler SyncHandler, probe, status string) {
