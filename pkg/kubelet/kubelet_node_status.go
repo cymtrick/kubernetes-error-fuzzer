@@ -765,6 +765,46 @@ func (kl *Kubelet) defaultNodeStatusFuncs() []func(context.Context, *v1.Node) er
 	return setters
 }
 
+// DefaultNodeStatusFuncs returns the default set of setNodeStatus funcs
+func (kl *Kubelet) DefaultNodeStatusFuncs() []func(context.Context, *v1.Node) error {
+	// if cloud is not nil, we expect the cloud resource sync manager to exist
+	var nodeAddressesFunc func() ([]v1.NodeAddress, error)
+	if kl.cloud != nil {
+		nodeAddressesFunc = kl.cloudResourceSyncManager.NodeAddresses
+	}
+	var validateHostFunc func() error
+	if kl.appArmorValidator != nil {
+		validateHostFunc = kl.appArmorValidator.ValidateHost
+	}
+	var setters []func(ctx context.Context, n *v1.Node) error
+	setters = append(setters,
+		nodestatus.NodeAddress(kl.nodeIPs, kl.nodeIPValidator, kl.hostname, kl.hostnameOverridden, kl.externalCloudProvider, kl.cloud, nodeAddressesFunc),
+		nodestatus.MachineInfo(string(kl.nodeName), kl.maxPods, kl.podsPerCore, kl.GetCachedMachineInfo, kl.containerManager.GetCapacity,
+			kl.containerManager.GetDevicePluginResourceCapacity, kl.containerManager.GetNodeAllocatableReservation, kl.recordEvent, kl.supportLocalStorageCapacityIsolation()),
+		nodestatus.VersionInfo(kl.cadvisor.VersionInfo, kl.containerRuntime.Type, kl.containerRuntime.Version),
+		nodestatus.DaemonEndpoints(kl.daemonEndpoints),
+		nodestatus.Images(kl.nodeStatusMaxImages, kl.imageManager.GetImageList),
+		nodestatus.GoRuntime(),
+	)
+	// Volume limits
+	setters = append(setters, nodestatus.VolumeLimits(kl.volumePluginMgr.ListVolumePluginWithLimits))
+
+	setters = append(setters,
+		nodestatus.MemoryPressureCondition(kl.clock.Now, kl.evictionManager.IsUnderMemoryPressure, kl.recordNodeStatusEvent),
+		nodestatus.DiskPressureCondition(kl.clock.Now, kl.evictionManager.IsUnderDiskPressure, kl.recordNodeStatusEvent),
+		nodestatus.PIDPressureCondition(kl.clock.Now, kl.evictionManager.IsUnderPIDPressure, kl.recordNodeStatusEvent),
+		nodestatus.ReadyCondition(kl.clock.Now, kl.runtimeState.runtimeErrors, kl.runtimeState.networkErrors, kl.runtimeState.storageErrors,
+			validateHostFunc, kl.containerManager.Status, kl.shutdownManager.ShutdownStatus, kl.recordNodeStatusEvent, kl.supportLocalStorageCapacityIsolation()),
+		nodestatus.VolumesInUse(kl.volumeManager.ReconcilerStatesHasBeenSynced, kl.volumeManager.GetVolumesInUse),
+		// TODO(mtaufen): I decided not to move this setter for now, since all it does is send an event
+		// and record state back to the Kubelet runtime object. In the future, I'd like to isolate
+		// these side-effects by decoupling the decisions to send events and partial status recording
+		// from the Node setters.
+		kl.recordNodeSchedulableEvent,
+	)
+	return setters
+}
+
 // Validate given node IP belongs to the current host
 func validateNodeIP(nodeIP net.IP) error {
 	// Honor IP limitations set in setNodeStatus()

@@ -59,6 +59,8 @@ import (
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1"
 	"k8s.io/klog/v2/ktesting"
 	"k8s.io/kubernetes/pkg/features"
+	"k8s.io/kubernetes/pkg/kubelet"
+	. "k8s.io/kubernetes/pkg/kubelet"
 	kubeletconfiginternal "k8s.io/kubernetes/pkg/kubelet/apis/config"
 	cadvisortest "k8s.io/kubernetes/pkg/kubelet/cadvisor/testing"
 	"k8s.io/kubernetes/pkg/kubelet/clustertrustbundle"
@@ -134,7 +136,7 @@ func (f *fakeImageGCManager) GetImageList() ([]kubecontainer.Image, error) {
 }
 
 type TestKubelet struct {
-	kubelet              *klets.Kubelet
+	kubelet              *kubelet.Kubelet
 	fakeRuntime          *containertest.FakeRuntime
 	fakeContainerManager *cm.FakeContainerManager
 	fakeKubeClient       *fake.Clientset
@@ -193,7 +195,7 @@ func newTestKubeletWithImageList(
 
 	fakeRecorder := &record.FakeRecorder{}
 	fakeKubeClient := &fake.Clientset{}
-	kubelet := &klets.Kubelet{}
+	kubelet := &Kubelet{}
 	kubelet.recorder = fakeRecorder
 	kubelet.kubeClient = fakeKubeClient
 	kubelet.heartbeatClient = fakeKubeClient

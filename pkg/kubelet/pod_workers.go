@@ -269,6 +269,8 @@ type podSyncer interface {
 	SyncTerminatedPod(ctx context.Context, pod *v1.Pod, podStatus *kubecontainer.PodStatus) error
 }
 
+// SyncPodFnType represents a function type for syncing pods.
+type SyncPodFnType func(ctx context.Context, updateType kubetypes.SyncPodType, pod *v1.Pod, mirrorPod *v1.Pod, podStatus *kubecontainer.PodStatus) (bool, error)
 type syncPodFnType func(ctx context.Context, updateType kubetypes.SyncPodType, pod *v1.Pod, mirrorPod *v1.Pod, podStatus *kubecontainer.PodStatus) (bool, error)
 type syncTerminatingPodFnType func(ctx context.Context, pod *v1.Pod, podStatus *kubecontainer.PodStatus, gracePeriod *int64, podStatusFn func(*v1.PodStatus)) error
 type syncTerminatingRuntimePodFnType func(ctx context.Context, runningPod *kubecontainer.Pod) error
@@ -1645,6 +1647,50 @@ func (p *podWorkers) removeTerminatedWorker(uid types.UID, status *podSyncStatus
 // killPodNow returns a KillPodFunc that can be used to kill a pod.
 // It is intended to be injected into other modules that need to kill a pod.
 func killPodNow(podWorkers PodWorkers, recorder record.EventRecorder) eviction.KillPodFunc {
+	return func(pod *v1.Pod, isEvicted bool, gracePeriodOverride *int64, statusFn func(*v1.PodStatus)) error {
+		// determine the grace period to use when killing the pod
+		gracePeriod := int64(0)
+		if gracePeriodOverride != nil {
+			gracePeriod = *gracePeriodOverride
+		} else if pod.Spec.TerminationGracePeriodSeconds != nil {
+			gracePeriod = *pod.Spec.TerminationGracePeriodSeconds
+		}
+
+		// we timeout and return an error if we don't get a callback within a reasonable time.
+		// the default timeout is relative to the grace period (we settle on 10s to wait for kubelet->runtime traffic to complete in sigkill)
+		timeout := gracePeriod + (gracePeriod / 2)
+		minTimeout := int64(10)
+		if timeout < minTimeout {
+			timeout = minTimeout
+		}
+		timeoutDuration := time.Duration(timeout) * time.Second
+
+		// open a channel we block against until we get a result
+		ch := make(chan struct{}, 1)
+		podWorkers.UpdatePod(UpdatePodOptions{
+			Pod:        pod,
+			UpdateType: kubetypes.SyncPodKill,
+			KillPodOptions: &KillPodOptions{
+				CompletedCh:                              ch,
+				Evict:                                    isEvicted,
+				PodStatusFunc:                            statusFn,
+				PodTerminationGracePeriodSecondsOverride: gracePeriodOverride,
+			},
+		})
+
+		// wait for either a response, or a timeout
+		select {
+		case <-ch:
+			return nil
+		case <-time.After(timeoutDuration):
+			recorder.Eventf(pod, v1.EventTypeWarning, events.ExceededGracePeriod, "Container runtime did not kill the pod within specified grace period.")
+			return fmt.Errorf("timeout waiting to kill pod")
+		}
+	}
+}
+
+// KillPodNow returns a KillPodFunc that can be used to kill a pod.
+func KillPodNow(podWorkers PodWorkers, recorder record.EventRecorder) eviction.KillPodFunc {
 	return func(pod *v1.Pod, isEvicted bool, gracePeriodOverride *int64, statusFn func(*v1.PodStatus)) error {
 		// determine the grace period to use when killing the pod
 		gracePeriod := int64(0)

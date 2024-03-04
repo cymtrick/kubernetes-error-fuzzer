@@ -130,6 +130,8 @@ const (
 	// Max amount of time to wait for the container runtime to come up.
 	maxWaitForContainerRuntime = 30 * time.Second
 
+	// MaxWaitForContainerRuntime for Max amount of time to wait for the container runtime to come up.
+	MaxWaitForContainerRuntime = 30 * time.Second
 	// nodeStatusUpdateRetry specifies how many times kubelet retries when posting node status failed.
 	nodeStatusUpdateRetry = 5
 
@@ -1380,6 +1382,26 @@ func (kl *Kubelet) GetHeartbeatClient() *clientset.Interface {
 	return &kl.heartbeatClient
 }
 
+// GetHostName returns a pointer to the hostname .
+func (kl *Kubelet) GetHostName() *string {
+	return &kl.hostname
+}
+
+// GetRootDir returns a pointer to the rootdir .
+func (kl *Kubelet) GetRootDir() *string {
+	return &kl.rootDirectory
+}
+
+// GetNodeName returns a pointer to the nodename .
+func (kl *Kubelet) GetNodeName() *types.NodeName {
+	return &kl.nodeName
+}
+
+// GetOS returns a pointer to the pod manager.
+func (kl *Kubelet) GetOS() *kubecontainer.OSInterface {
+	return &kl.os
+}
+
 // GetPodManager returns a pointer to the pod manager.
 func (kl *Kubelet) GetPodManager() *kubepod.Manager {
 	return &kl.podManager
@@ -1455,6 +1477,181 @@ func (kl *Kubelet) GetServiceLister() *serviceLister {
 	return &kl.serviceLister
 }
 
+// GetMounter returns a pointer to the mount.
+func (kl *Kubelet) GetMounter() *mount.Interface {
+	return &kl.mounter
+}
+
+// GetRuntimeState returns a pointer to runtimeState
+func (kl *Kubelet) GetRuntimeState() *runtimeState {
+	return kl.runtimeState
+}
+
+// GetHostUtil returns a pointer to hostutil
+func (kl *Kubelet) GetHostUtil() *hostutil.HostUtils {
+	return &kl.hostutil
+}
+
+// GetSubPather returns a pointer to hostutil
+func (kl *Kubelet) GetSubPather() *subpath.Interface {
+	return &kl.subpather
+}
+
+// GetSourcesReady returns a pointer to hostutil
+func (kl *Kubelet) GetSourcesReady() *config.SourcesReady {
+	return &kl.sourcesReady
+}
+
+// GetServiceHasSynced returns a pointer to cache.InformerSynced
+func (kl *Kubelet) GetServiceHasSynced() *cache.InformerSynced {
+	return &kl.serviceHasSynced
+}
+
+// GetNodeHasSynced returns a pointer to cache.InformerSynced
+func (kl *Kubelet) GetNodeHasSynced() *cache.InformerSynced {
+	return &kl.nodeHasSynced
+}
+
+// GetDaemonEndpoints returns a pointer to v1.NodeDaemonEndpoints
+func (kl *Kubelet) GetDaemonEndpoints() *v1.NodeDaemonEndpoints {
+	return kl.daemonEndpoints
+}
+
+// GetCAdvisor returns a pointer to cadvisor.Interface
+func (kl *Kubelet) GetCAdvisor() *cadvisor.Interface {
+	return &kl.cadvisor
+}
+
+// GetTracer returns a pointer to trace.Tracer
+func (kl *Kubelet) GetTracer() *trace.Tracer {
+	return &kl.tracer
+}
+
+// GetMirrorPodManager returns a pointer to kubepod.MirrorClient
+func (kl *Kubelet) GetMirrorPodManager() *kubepod.MirrorClient {
+	return &kl.mirrorPodClient
+}
+
+// GetNodeStartupLatencyTracker returns a pointer to util.NodeStartupLatencyTracker
+func (kl *Kubelet) GetNodeStartupLatencyTracker() *util.NodeStartupLatencyTracker {
+	return &kl.nodeStartupLatencyTracker
+}
+
+// GetRuntimeCache returns a pointer to kubecontainer.RuntimeCache
+func (kl *Kubelet) GetRuntimeCache() *kubecontainer.RuntimeCache {
+	return &kl.runtimeCache
+}
+
+// GetReasonCache returns a pointer to ReasonCache
+func (kl *Kubelet) GetReasonCache() *ReasonCache {
+	return kl.reasonCache
+}
+
+// GetPodCache returns a pointer to kubecontainer.Cache
+func (kl *Kubelet) GetPodCache() *kubecontainer.Cache {
+	return &kl.podCache
+}
+
+// GetPodWorkers returns a pointer to PodWorkers
+func (kl *Kubelet) GetPodWorkers() *PodWorkers {
+	return &kl.podWorkers
+}
+
+// GetLiveinessManager returns a pointer to proberesults.Manager
+func (kl *Kubelet) GetLiveinessManager() *proberesults.Manager {
+	return &kl.livenessManager
+}
+
+// GetReadinessManager returns a pointer to proberesults.Manager
+func (kl *Kubelet) GetReadinessManager() *proberesults.Manager {
+	return &kl.readinessManager
+}
+
+// GetStartupManager returns a pointer to proberesults.Manager
+func (kl *Kubelet) GetStartupManager() *proberesults.Manager {
+	return &kl.startupManager
+}
+
+// GetContainerManager returns a pointer to cm.ContainerManager
+func (kl *Kubelet) GetContainerManager() *cm.ContainerManager {
+	return &kl.containerManager
+}
+
+// GetResourceAnalyzer returns a pointer to serverstats.ResourceAnalyzer
+func (kl *Kubelet) GetResourceAnalyzer() *serverstats.ResourceAnalyzer {
+	return &kl.resourceAnalyzer
+}
+
+// GetStatsProvider returns a pointer to stats.Provider
+func (kl *Kubelet) GetStatsProvider() *stats.Provider {
+	return kl.StatsProvider
+}
+
+// GetContainerGC returns a pointer to kubecontainer.GC
+func (kl *Kubelet) GetContainerGC() *kubecontainer.GC {
+	return &kl.containerGC
+}
+
+// GetBackOff returns a pointer to flowcontrol.Backoff
+func (kl *Kubelet) GetBackOff() *flowcontrol.Backoff {
+	return kl.backOff
+}
+
+// GetContainerLogManager returns a pointer to logs.ContainerLogManager
+func (kl *Kubelet) GetContainerLogManager() *logs.ContainerLogManager {
+	return &kl.containerLogManager
+}
+
+// GetResyncInterval returns a pointer to time.Duration
+func (kl *Kubelet) GetResyncInterval() *time.Duration {
+	return &kl.resyncInterval
+}
+
+// GetWorkQueue returns a pointer to queue.WorkQueue
+func (kl *Kubelet) GetWorkQueue() *queue.WorkQueue {
+	return &kl.workQueue
+}
+
+// GetPleg returns a pointer to pleg.PodLifecycleEventGenerator
+func (kl *Kubelet) GetPleg() *pleg.PodLifecycleEventGenerator {
+	return &kl.pleg
+}
+
+// GetClock returns a pointer to clock.WithTicker
+func (kl *Kubelet) GetClock() *clock.WithTicker {
+	return &kl.clock
+}
+
+// AdmitHandlers returns a pointer to lifecycle.PodAdmitHandlers
+func (kl *Kubelet) AdmitHandlers() *lifecycle.PodAdmitHandlers {
+	return &kl.admitHandlers
+}
+
+// GetShutdownManager returns a pointer to nodeshutdown.Manager
+func (kl *Kubelet) GetShutdownManager() *nodeshutdown.Manager {
+	return &kl.shutdownManager
+}
+
+// GetVolumePluginMgr returns a pointer to volume.VolumePluginMgr
+func (kl *Kubelet) GetVolumePluginMgr() *volume.VolumePluginMgr {
+	return kl.volumePluginMgr
+}
+
+// GetPluginManager returns a pointer to pluginmanager.PluginManager
+func (kl *Kubelet) GetPluginManager() *pluginmanager.PluginManager {
+	return &kl.pluginManager
+}
+
+// SetNodeStatusFuncs returns a pointer to setNodeStatusFuncs
+func (kl *Kubelet) SetNodeStatusFuncs() *[]func(context.Context, *v1.Node) error {
+	return &kl.setNodeStatusFuncs
+}
+
+// GetKubeletConfiguration returns a pointer to kubeletconfiginternal.KubeletConfiguration
+func (kl *Kubelet) GetKubeletConfiguration() *kubeletconfiginternal.KubeletConfiguration {
+	return &kl.kubeletConfiguration
+}
+
 // setupDataDirs creates:
 // 1.  the root directory
 // 2.  the pods directory
@@ -1462,6 +1659,49 @@ func (kl *Kubelet) GetServiceLister() *serviceLister {
 // 4.  the pod-resources directory
 // 5.  the checkpoint directory
 func (kl *Kubelet) setupDataDirs() error {
+	if cleanedRoot := filepath.Clean(kl.rootDirectory); cleanedRoot != kl.rootDirectory {
+		return fmt.Errorf("rootDirectory not in canonical form: expected %s, was %s", cleanedRoot, kl.rootDirectory)
+	}
+	pluginRegistrationDir := kl.getPluginsRegistrationDir()
+	pluginsDir := kl.getPluginsDir()
+	if err := os.MkdirAll(kl.getRootDir(), 0750); err != nil {
+		return fmt.Errorf("error creating root directory: %v", err)
+	}
+	if err := kl.hostutil.MakeRShared(kl.getRootDir()); err != nil {
+		return fmt.Errorf("error configuring root directory: %v", err)
+	}
+	if err := os.MkdirAll(kl.getPodsDir(), 0750); err != nil {
+		return fmt.Errorf("error creating pods directory: %v", err)
+	}
+	if err := os.MkdirAll(kl.getPluginsDir(), 0750); err != nil {
+		return fmt.Errorf("error creating plugins directory: %v", err)
+	}
+	if err := os.MkdirAll(kl.getPluginsRegistrationDir(), 0750); err != nil {
+		return fmt.Errorf("error creating plugins registry directory: %v", err)
+	}
+	if err := os.MkdirAll(kl.getPodResourcesDir(), 0750); err != nil {
+		return fmt.Errorf("error creating podresources directory: %v", err)
+	}
+	if utilfeature.DefaultFeatureGate.Enabled(features.ContainerCheckpoint) {
+		if err := os.MkdirAll(kl.getCheckpointsDir(), 0700); err != nil {
+			return fmt.Errorf("error creating checkpoint directory: %v", err)
+		}
+	}
+	if selinux.GetEnabled() {
+		err := selinux.SetFileLabel(pluginRegistrationDir, config.KubeletPluginsDirSELinuxLabel)
+		if err != nil {
+			klog.InfoS("Unprivileged containerized plugins might not work, could not set selinux context on plugin registration dir", "path", pluginRegistrationDir, "err", err)
+		}
+		err = selinux.SetFileLabel(pluginsDir, config.KubeletPluginsDirSELinuxLabel)
+		if err != nil {
+			klog.InfoS("Unprivileged containerized plugins might not work, could not set selinux context on plugins dir", "path", pluginsDir, "err", err)
+		}
+	}
+	return nil
+}
+
+// SetupDataDirs creates the export for setupDataDirs
+func (kl *Kubelet) SetupDataDirs() error {
 	if cleanedRoot := filepath.Clean(kl.rootDirectory); cleanedRoot != kl.rootDirectory {
 		return fmt.Errorf("rootDirectory not in canonical form: expected %s, was %s", cleanedRoot, kl.rootDirectory)
 	}
@@ -3119,6 +3359,11 @@ func (kl *Kubelet) ListPodSandboxMetrics(ctx context.Context) ([]*runtimeapi.Pod
 }
 
 func (kl *Kubelet) supportLocalStorageCapacityIsolation() bool {
+	return kl.GetConfiguration().LocalStorageCapacityIsolation
+}
+
+// SupportLocalStorageCapacityIsolation returns true if the kubelet supports local storage capacity isolation.
+func (kl *Kubelet) SupportLocalStorageCapacityIsolation() bool {
 	return kl.GetConfiguration().LocalStorageCapacityIsolation
 }
 

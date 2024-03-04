@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/kubernetes/pkg/kubelet/lifecycle"
 	"k8s.io/kubernetes/pkg/kubelet/status"
@@ -44,6 +44,24 @@ type activeDeadlineHandler struct {
 
 // newActiveDeadlineHandler returns an active deadline handler that can enforce pod active deadline
 func newActiveDeadlineHandler(
+	podStatusProvider status.PodStatusProvider,
+	recorder record.EventRecorder,
+	clock clock.Clock,
+) (*activeDeadlineHandler, error) {
+
+	// check for all required fields
+	if clock == nil || podStatusProvider == nil || recorder == nil {
+		return nil, fmt.Errorf("required arguments must not be nil: %v, %v, %v", clock, podStatusProvider, recorder)
+	}
+	return &activeDeadlineHandler{
+		clock:             clock,
+		podStatusProvider: podStatusProvider,
+		recorder:          recorder,
+	}, nil
+}
+
+// NewActiveDeadlineHandler returns a new active deadline handler.
+func NewActiveDeadlineHandler(
 	podStatusProvider status.PodStatusProvider,
 	recorder record.EventRecorder,
 	clock clock.Clock,

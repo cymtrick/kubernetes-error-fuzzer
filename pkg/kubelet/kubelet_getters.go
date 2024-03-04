@@ -54,6 +54,12 @@ func (kl *Kubelet) getPodsDir() string {
 	return filepath.Join(kl.getRootDir(), config.DefaultKubeletPodsDirName)
 }
 
+// GetPodsDirGetters returns the full path to the directory under which pod
+// directories are created.
+func (kl *Kubelet) GetPodsDirGetters() string {
+	return filepath.Join(kl.getRootDir(), config.DefaultKubeletPodsDirName)
+}
+
 // getPluginsDir returns the full path to the directory under which plugin
 // directories are created.  Plugins can use these directories for data that
 // they need to persist.  Plugins should create subdirectories under this named
@@ -67,6 +73,14 @@ func (kl *Kubelet) getPluginsDir() string {
 // More information is available about plugin registration in the pluginwatcher
 // module
 func (kl *Kubelet) getPluginsRegistrationDir() string {
+	return filepath.Join(kl.getRootDir(), config.DefaultKubeletPluginsRegistrationDirName)
+}
+
+// GetPluginsRegistrationDir returns the full path to the directory under which
+// plugins socket should be placed to be registered.
+// More information is available about plugin registration in the pluginwatcher
+// module
+func (kl *Kubelet) GetPluginsRegistrationDir() string {
 	return filepath.Join(kl.getRootDir(), config.DefaultKubeletPluginsRegistrationDirName)
 }
 
@@ -266,6 +280,16 @@ func (kl *Kubelet) getNodeAnyWay() (*v1.Node, error) {
 	return kl.initialNode(context.TODO())
 }
 
+// GetNodeAnyWay attempts to return the node from kubelet's nodeInfo, or the
+func (kl *Kubelet) GetNodeAnyWay() (*v1.Node, error) {
+	if kl.kubeClient != nil {
+		if n, err := kl.nodeLister.Get(string(kl.nodeName)); err == nil {
+			return n, nil
+		}
+	}
+	return kl.initialNode(context.TODO())
+}
+
 // GetNodeConfig returns the container manager node config.
 func (kl *Kubelet) GetNodeConfig() cm.NodeConfig {
 	return kl.containerManager.GetNodeConfig()
@@ -431,6 +455,12 @@ func (kl *Kubelet) GetCachedMachineInfo() (*cadvisorapiv1.MachineInfo, error) {
 }
 
 func (kl *Kubelet) setCachedMachineInfo(info *cadvisorapiv1.MachineInfo) {
+	kl.machineInfoLock.Lock()
+	defer kl.machineInfoLock.Unlock()
+	kl.machineInfo = info
+}
+
+func (kl *Kubelet) SetCachedMachineInfo(info *cadvisorapiv1.MachineInfo) {
 	kl.machineInfoLock.Lock()
 	defer kl.machineInfoLock.Unlock()
 	kl.machineInfo = info

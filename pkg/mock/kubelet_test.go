@@ -28,6 +28,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -134,6 +135,14 @@ func (f *fakeImageGCManager) GetImageList() ([]kubecontainer.Image, error) {
 	return f.fakeImageService.ListImages(context.Background())
 }
 
+type serviceLister interface {
+	List(selector labels.Selector) ([]*v1.Service, error)
+}
+
+type testServiceLister struct {
+	services []*v1.Service
+}
+
 type TestKubelet struct {
 	kubelet              *kubelet.Kubelet
 	fakeRuntime          *containertest.FakeRuntime
@@ -145,9 +154,33 @@ type TestKubelet struct {
 	volumePlugin         *volumetest.FakeVolumePlugin
 }
 
+type TestingInterface interface {
+	Errorf(format string, args ...interface{})
+}
+
+type fakePodWorkers struct {
+	lock      sync.Mutex
+	syncPodFn kubelet.SyncPodFnType
+	cache     kubecontainer.Cache
+	t         TestingInterface
+
+	triggeredDeletion []types.UID
+	triggeredTerminal []types.UID
+
+	statusLock            sync.Mutex
+	running               map[types.UID]bool
+	terminating           map[types.UID]bool
+	terminated            map[types.UID]bool
+	terminationRequested  map[types.UID]bool
+	finished              map[types.UID]bool
+	removeRuntime         map[types.UID]bool
+	removeContent         map[types.UID]bool
+	terminatingStaticPods map[string]bool
+}
+
 func (tk *TestKubelet) Cleanup() {
 	if tk.kubelet != nil {
-		os.RemoveAll(tk.rootDirectory)
+		os.RemoveAll(*tk.kubelet.GetRootDir())
 		tk.kubelet = nil
 	}
 }
@@ -197,33 +230,33 @@ func newTestKubeletWithImageList(
 	klets := &kubelet.Kubelet{}
 	*klets.GetRecorder() = fakeRecorder
 	*klets.GetKubeClient() = fakeKubeClient
-	*klets.heartbeatClient = fakeKubeClient
-	*klets.os = &containertest.FakeOS{}
-	*klets.mounter = mount.NewFakeMounter(nil)
-	*klets.hostutil = hostutil.NewFakeHostUtil(nil)
-	*klets.subpather = &subpath.FakeSubpath{}
+	*klets.GetHeartbeatClient() = fakeKubeClient
+	*klets.GetOS() = &containertest.FakeOS{}
+	*klets.GetMounter() = mount.NewFakeMounter(nil)
+	*klets.GetHostUtil() = hostutil.NewFakeHostUtil(nil)
+	*klets.GetSubPather() = &subpath.FakeSubpath{}
 
-	kubelet.hostname = testKubeletHostname
-	kubelet.nodeName = types.NodeName(testKubeletHostname)
-	kubelet.runtimeState = newRuntimeState(maxWaitForContainerRuntime)
-	kubelet.runtimeState.setNetworkState(nil)
+	*klets.GetHostName() = testKubeletHostname
+	*klets.GetNodeName() = types.NodeName(testKubeletHostname)
+	*klets.GetRuntimeState() = *kubelet.NewRuntimeState(kubelet.MaxWaitForContainerRuntime)
+	klets.GetRuntimeState().SetNetworkState(nil)
 	if tempDir, err := os.MkdirTemp("", "kubelet_test."); err != nil {
 		t.Fatalf("can't make a temp rootdir: %v", err)
 	} else {
-		kubelet.rootDirectory = tempDir
+		*klets.GetRootDir() = tempDir
 	}
-	if err := os.MkdirAll(kubelet.rootDirectory, 0750); err != nil {
-		t.Fatalf("can't mkdir(%q): %v", kubelet.rootDirectory, err)
+	if err := os.MkdirAll(*klets.GetRootDir(), 0750); err != nil {
+		t.Fatalf("can't mkdir(%q): %v", *klets.GetRootDir(), err)
 	}
-	kubelet.sourcesReady = config.NewSourcesReady(func(_ sets.String) bool { return true })
-	kubelet.serviceLister = testServiceLister{}
-	kubelet.serviceHasSynced = func() bool { return true }
-	kubelet.nodeHasSynced = func() bool { return true }
-	kubelet.nodeLister = testNodeLister{
+	*klets.GetSourcesReady() = config.NewSourcesReady(func(_ sets.String) bool { return true })
+	*klets.GetServiceLister() = []*v1.Service
+	*klets.GetServiceHasSynced() = func() bool { return true }
+	*klets.GetNodeHasSynced() = func() bool { return true }
+	*klets.GetNodeLister() = testNodeLister{
 		nodes: []*v1.Node{
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: string(kubelet.nodeName),
+					Name: string(*klets.GetNodeName()),
 				},
 				Status: v1.NodeStatus{
 					Conditions: []v1.NodeCondition{
@@ -254,45 +287,45 @@ func newTestKubeletWithImageList(
 			},
 		},
 	}
-	kubelet.recorder = fakeRecorder
-	if err := kubelet.setupDataDirs(); err != nil {
+	*klets.GetRecorder() = fakeRecorder
+	if err := klets.SetupDataDirs(); err != nil {
 		t.Fatalf("can't initialize kubelet data dirs: %v", err)
 	}
-	kubelet.daemonEndpoints = &v1.NodeDaemonEndpoints{}
+	*klets.GetDaemonEndpoints() = v1.NodeDaemonEndpoints{}
 
-	kubelet.cadvisor = &cadvisortest.Fake{}
-	machineInfo, _ := kubelet.cadvisor.MachineInfo()
-	kubelet.setCachedMachineInfo(machineInfo)
-	kubelet.tracer = oteltrace.NewNoopTracerProvider().Tracer("")
+	*klets.GetCAdvisor() = &cadvisortest.Fake{}
+	machineInfo, _ := (*klets.GetCAdvisor()).MachineInfo()
+	klets.SetCachedMachineInfo(machineInfo)
+	*klets.GetTracer() = oteltrace.NewNoopTracerProvider().Tracer("")
 
 	fakeMirrorClient := podtest.NewFakeMirrorClient()
-	secretManager := secret.NewSimpleSecretManager(kubelet.kubeClient)
-	kubelet.secretManager = secretManager
-	configMapManager := configmap.NewSimpleConfigMapManager(kubelet.kubeClient)
-	kubelet.configMapManager = configMapManager
-	kubelet.mirrorPodClient = fakeMirrorClient
-	kubelet.podManager = kubepod.NewBasicPodManager()
+	secretManager := secret.NewSimpleSecretManager(*klets.GetKubeClient())
+	*klets.GetSecretManager() = secretManager
+	configMapManager := configmap.NewSimpleConfigMapManager(*klets.GetKubeClient())
+	*klets.GetConfigMapManager() = configMapManager
+	*klets.GetMirrorPodManager() = fakeMirrorClient
+	*klets.GetPodManager() = kubepod.NewBasicPodManager()
 	podStartupLatencyTracker := kubeletutil.NewPodStartupLatencyTracker()
-	kubelet.statusManager = status.NewManager(fakeKubeClient, kubelet.podManager, &statustest.FakePodDeletionSafetyProvider{}, podStartupLatencyTracker, kubelet.getRootDir())
-	kubelet.nodeStartupLatencyTracker = kubeletutil.NewNodeStartupLatencyTracker()
+	*klets.GetStatusManager() = status.NewManager(fakeKubeClient, *klets.GetPodManager(), &statustest.FakePodDeletionSafetyProvider{}, podStartupLatencyTracker, *klets.GetRootDir())
+	*klets.GetNodeStartupLatencyTracker() = kubeletutil.NewNodeStartupLatencyTracker()
 
-	kubelet.containerRuntime = fakeRuntime
-	kubelet.runtimeCache = containertest.NewFakeRuntimeCache(kubelet.containerRuntime)
-	kubelet.reasonCache = NewReasonCache()
-	kubelet.podCache = containertest.NewFakeCache(kubelet.containerRuntime)
-	kubelet.podWorkers = &fakePodWorkers{
-		syncPodFn: kubelet.SyncPod,
-		cache:     kubelet.podCache,
+	*klets.GetContainerRuntime() = fakeRuntime
+	*klets.GetRuntimeCache() = containertest.NewFakeRuntimeCache(*klets.GetContainerRuntime())
+	*klets.GetReasonCache() = *kubelet.NewReasonCache()
+	*klets.GetPodCache() = containertest.NewFakeCache(*klets.GetContainerRuntime())
+	*klets.GetPodWorkers() = &fakePodWorkers{
+		syncPodFn: *klets.SyncPod,
+		cache:     *klets.GetPodCache(),
 		t:         t,
 	}
 
-	kubelet.probeManager = probetest.FakeManager{}
-	kubelet.livenessManager = proberesults.NewManager()
-	kubelet.readinessManager = proberesults.NewManager()
-	kubelet.startupManager = proberesults.NewManager()
+	*klets.GetProbeManager() = probetest.FakeManager{}
+	*klets.GetLiveinessManager() = proberesults.NewManager()
+	*klets.GetReadinessManager() = proberesults.NewManager()
+	*klets.GetStartupManager() = proberesults.NewManager()
 
 	fakeContainerManager := cm.NewFakeContainerManager()
-	kubelet.containerManager = fakeContainerManager
+	*klets.GetContainerManager() = fakeContainerManager
 	fakeNodeRef := &v1.ObjectReference{
 		Kind:      "Node",
 		Name:      testKubeletHostname,
@@ -301,78 +334,78 @@ func newTestKubeletWithImageList(
 	}
 
 	volumeStatsAggPeriod := time.Second * 10
-	kubelet.resourceAnalyzer = serverstats.NewResourceAnalyzer(kubelet, volumeStatsAggPeriod, kubelet.recorder)
+	*klets.GetResourceAnalyzer() = serverstats.NewResourceAnalyzer(*klets, volumeStatsAggPeriod, *klets.GetRecorder())
 
 	fakeHostStatsProvider := stats.NewFakeHostStatsProvider()
 
-	kubelet.StatsProvider = stats.NewCadvisorStatsProvider(
-		kubelet.cadvisor,
-		kubelet.resourceAnalyzer,
-		kubelet.podManager,
-		kubelet.runtimeCache,
+	*klets.GetStatsProvider() = *stats.NewCadvisorStatsProvider(
+		*klets.GetCAdvisor(),
+		*klets.GetResourceAnalyzer(),
+		*klets.GetPodManager(),
+		*klets.GetRuntimeCache(),
 		fakeRuntime,
-		kubelet.statusManager,
+		*klets.GetStatusManager(),
 		fakeHostStatsProvider,
 	)
 	fakeImageGCPolicy := images.ImageGCPolicy{
 		HighThresholdPercent: 90,
 		LowThresholdPercent:  80,
 	}
-	imageGCManager, err := images.NewImageGCManager(fakeRuntime, kubelet.StatsProvider, fakeRecorder, fakeNodeRef, fakeImageGCPolicy, oteltrace.NewNoopTracerProvider())
+	imageGCManager, err := images.NewImageGCManager(fakeRuntime, *klets.GetStatsProvider(), fakeRecorder, fakeNodeRef, fakeImageGCPolicy, oteltrace.NewNoopTracerProvider())
 	assert.NoError(t, err)
-	kubelet.imageManager = &fakeImageGCManager{
+	*klets.GetImageManager() = &fakeImageGCManager{
 		fakeImageService: fakeRuntime,
 		ImageGCManager:   imageGCManager,
 	}
-	kubelet.containerLogManager = logs.NewStubContainerLogManager()
+	*klets.GetContainerLogManager() = logs.NewStubContainerLogManager()
 	containerGCPolicy := kubecontainer.GCPolicy{
 		MinAge:             time.Duration(0),
 		MaxPerPodContainer: 1,
 		MaxContainers:      -1,
 	}
-	containerGC, err := kubecontainer.NewContainerGC(fakeRuntime, containerGCPolicy, kubelet.sourcesReady)
+	containerGC, err := kubecontainer.NewContainerGC(fakeRuntime, containerGCPolicy, *klets.GetSourcesReady())
 	assert.NoError(t, err)
-	kubelet.containerGC = containerGC
+	*klets.GetContainerGC() = containerGC
 
 	fakeClock := testingclock.NewFakeClock(time.Now())
-	kubelet.backOff = flowcontrol.NewBackOff(time.Second, time.Minute)
-	kubelet.backOff.Clock = fakeClock
-	kubelet.resyncInterval = 10 * time.Second
-	kubelet.workQueue = queue.NewBasicWorkQueue(fakeClock)
+	*klets.GetBackOff() = *flowcontrol.NewBackOff(time.Second, time.Minute)
+	klets.GetBackOff().Clock = fakeClock
+	*klets.GetResyncInterval() = 10 * time.Second
+	*klets.GetWorkQueue() = queue.NewBasicWorkQueue(fakeClock)
 	// Relist period does not affect the tests.
-	kubelet.pleg = pleg.NewGenericPLEG(fakeRuntime, make(chan *pleg.PodLifecycleEvent, 100), &pleg.RelistDuration{RelistPeriod: time.Hour, RelistThreshold: genericPlegRelistThreshold}, kubelet.podCache, clock.RealClock{})
-	kubelet.clock = fakeClock
+	*klets.GetPleg() = pleg.NewGenericPLEG(fakeRuntime, make(chan *pleg.PodLifecycleEvent, 100), &pleg.RelistDuration{RelistPeriod: time.Hour, RelistThreshold: time.Minute * 3}, *klets.GetPodCache(), clock.RealClock{})
+	*klets.GetClock() = fakeClock
 
 	nodeRef := &v1.ObjectReference{
 		Kind:      "Node",
-		Name:      string(kubelet.nodeName),
-		UID:       types.UID(kubelet.nodeName),
+		Name:      string(*klets.GetNodeName()),
+		UID:       types.UID(*klets.GetNodeName()),
 		Namespace: "",
 	}
 	// setup eviction manager
-	evictionManager, evictionAdmitHandler := eviction.NewManager(kubelet.resourceAnalyzer, eviction.Config{},
-		killPodNow(kubelet.podWorkers, fakeRecorder), kubelet.imageManager, kubelet.containerGC, fakeRecorder, nodeRef, kubelet.clock, kubelet.supportLocalStorageCapacityIsolation())
+	evictionManager, evictionAdmitHandler := eviction.NewManager(*klets.GetResourceAnalyzer(), eviction.Config{},
+		kubelet.KillPodNow(*klets.GetPodWorkers(), fakeRecorder), *klets.GetImageManager(), *klets.GetContainerGC(), fakeRecorder, nodeRef, *klets.GetClock(), klets.SupportLocalStorageCapacityIsolation())
 
-	kubelet.evictionManager = evictionManager
-	kubelet.admitHandlers.AddPodAdmitHandler(evictionAdmitHandler)
+	*klets.GetEvictionManager() = evictionManager
+	klets.AdmitHandlers().AddPodAdmitHandler(evictionAdmitHandler)
 
 	// setup shutdown manager
 	shutdownManager, shutdownAdmitHandler := nodeshutdown.NewManager(&nodeshutdown.Config{
 		Logger:                          logger,
-		ProbeManager:                    kubelet.probeManager,
+		ProbeManager:                    *klets.GetProbeManager(),
 		Recorder:                        fakeRecorder,
 		NodeRef:                         nodeRef,
-		GetPodsFunc:                     kubelet.podManager.GetPods,
-		KillPodFunc:                     killPodNow(kubelet.podWorkers, fakeRecorder),
+		GetPodsFunc:                     (*klets.GetPodManager()).GetPods,
+		KillPodFunc:                     kubelet.KillPodNow(*klets.GetPodWorkers(), fakeRecorder),
 		SyncNodeStatusFunc:              func() {},
 		ShutdownGracePeriodRequested:    0,
 		ShutdownGracePeriodCriticalPods: 0,
 	})
-	kubelet.shutdownManager = shutdownManager
-	kubelet.admitHandlers.AddPodAdmitHandler(shutdownAdmitHandler)
+	*klets.GetShutdownManager() = shutdownManager
+	klets.AdmitHandlers().AddPodAdmitHandler(shutdownAdmitHandler)
 
 	// Add this as cleanup predicate pod admitter
-	kubelet.admitHandlers.AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(kubelet.getNodeAnyWay, lifecycle.NewAdmissionFailureHandlerStub(), kubelet.containerManager.UpdatePluginResources))
+	klets.AdmitHandlers().AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(kubelet.GetNodeAnyWay(), lifecycle.NewAdmissionFailureHandlerStub(), (*klets.GetContainerManager()).UpdatePluginResources))
 
 	allPlugins := []volume.VolumePlugin{}
 	plug := &volumetest.FakeVolumePlugin{PluginName: "fake", Host: nil}
@@ -383,39 +416,39 @@ func newTestKubeletWithImageList(
 	}
 
 	var prober volume.DynamicPluginProber // TODO (#51147) inject mock
-	kubelet.volumePluginMgr, err =
-		NewInitializedVolumePluginMgr(kubelet, kubelet.secretManager, kubelet.configMapManager, token.NewManager(kubelet.kubeClient), &clustertrustbundle.NoopManager{}, allPlugins, prober)
+	*klets.GetVolumePluginMgr(), err =
+		kubelet.NewInitializedVolumePluginMgr(*klets, *klets.GetSecretManager(), *klets.GetConfigMapManager(), token.NewManager(*klets.GetKubeClient()), &clustertrustbundle.NoopManager{}, allPlugins, prober)
 	require.NoError(t, err, "Failed to initialize VolumePluginMgr")
 
-	kubelet.volumeManager = kubeletvolume.NewVolumeManager(
+	*klets.GetVolumeManager() = kubeletvolume.NewVolumeManager(
 		controllerAttachDetachEnabled,
-		kubelet.nodeName,
-		kubelet.podManager,
-		kubelet.podWorkers,
+		*klets.GetNodeName(),
+		*klets.GetPodManager(),
+		*klets.GetPodWorkers(),
 		fakeKubeClient,
-		kubelet.volumePluginMgr,
+		klets.GetVolumePluginMgr(),
 		fakeRuntime,
-		kubelet.mounter,
-		kubelet.hostutil,
-		kubelet.getPodsDir(),
-		kubelet.recorder,
+		*klets.GetMounter(),
+		*klets.GetHostUtil(),
+		klets.GetPodsDirGetters(),
+		*klets.GetRecorder(),
 		false, /* keepTerminatedPodVolumes */
 		volumetest.NewBlockVolumePathHandler())
 
-	kubelet.pluginManager = pluginmanager.NewPluginManager(
-		kubelet.getPluginsRegistrationDir(), /* sockDir */
-		kubelet.recorder,
+	*klets.GetPluginManager() = pluginmanager.NewPluginManager(
+		klets.GetPluginsRegistrationDir(), /* sockDir */
+		*klets.GetRecorder(),
 	)
-	kubelet.setNodeStatusFuncs = kubelet.defaultNodeStatusFuncs()
+	*klets.SetNodeStatusFuncs() = klets.DefaultNodeStatusFuncs()
 
 	// enable active deadline handler
-	activeDeadlineHandler, err := newActiveDeadlineHandler(kubelet.statusManager, kubelet.recorder, kubelet.clock)
+	activeDeadlineHandler, err := kubelet.NewActiveDeadlineHandler(*klets.GetStatusManager(), *klets.GetRecorder(), *klets.GetClock())
 	require.NoError(t, err, "Can't initialize active deadline handler")
 
-	kubelet.AddPodSyncLoopHandler(activeDeadlineHandler)
-	kubelet.AddPodSyncHandler(activeDeadlineHandler)
-	kubelet.kubeletConfiguration.LocalStorageCapacityIsolation = localStorageCapacityIsolation
-	return &TestKubelet{kubelet, fakeRuntime, fakeContainerManager, fakeKubeClient, fakeMirrorClient, fakeClock, nil, plug}
+	klets.AddPodSyncLoopHandler(activeDeadlineHandler)
+	klets.AddPodSyncHandler(activeDeadlineHandler)
+	(*klets.GetKubeletConfiguration()).LocalStorageCapacityIsolation = localStorageCapacityIsolation
+	return &TestKubelet{klets, fakeRuntime, fakeContainerManager, fakeKubeClient, fakeMirrorClient, fakeClock, nil, plug}
 }
 
 func newTestPods(count int) []*v1.Pod {
@@ -440,7 +473,7 @@ func TestSyncLoopAbort(t *testing.T) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
-	kubelet.runtimeState.setRuntimeSync(time.Now())
+	(kubelet.GetRuntimeState).setRuntimeSync(time.Now())
 	// The syncLoop waits on time.After(resyncInterval), set it really big so that we don't race for
 	// the channel close
 	kubelet.resyncInterval = time.Second * 30
@@ -773,7 +806,7 @@ func (nl testNodeLister) List(_ labels.Selector) (ret []*v1.Node, err error) {
 	return nl.nodes, nil
 }
 
-func checkPodStatus(t *testing.T, kl *Kubelet, pod *v1.Pod, phase v1.PodPhase) {
+func checkPodStatus(t *testing.T, kl *kubelet.Kubelet, pod *v1.Pod, phase v1.PodPhase) {
 	t.Helper()
 	status, found := kl.statusManager.GetPodStatus(pod.UID)
 	require.True(t, found, "Status of pod %q is not found in the status map", pod.UID)
@@ -3005,7 +3038,7 @@ func simulateVolumeInUseUpdate(
 	}
 }
 
-func runVolumeManager(kubelet *Kubelet) chan struct{} {
+func runVolumeManager(kubelet *kubelet.Kubelet) chan struct{} {
 	stopCh := make(chan struct{})
 	go kubelet.volumeManager.Run(kubelet.sourcesReady, stopCh)
 	return stopCh
