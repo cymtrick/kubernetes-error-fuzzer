@@ -1652,6 +1652,16 @@ func (kl *Kubelet) GetKubeletConfiguration() *kubeletconfiginternal.KubeletConfi
 	return &kl.kubeletConfiguration
 }
 
+// GetCgroupsPerQOS returns a pointer to bool
+func (kl *Kubelet) GetCgroupsPerQOS() *bool {
+	return &kl.cgroupsPerQOS
+}
+
+// GetDNSConfigurer returns a pointer to dns.Configurer
+func (kl *Kubelet) GetDNSConfigurer() *dns.Configurer {
+	return kl.dnsConfigurer
+}
+
 // setupDataDirs creates:
 // 1.  the root directory
 // 2.  the pods directory

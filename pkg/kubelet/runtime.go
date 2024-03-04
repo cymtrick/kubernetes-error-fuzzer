@@ -57,6 +57,12 @@ func (s *runtimeState) setRuntimeSync(t time.Time) {
 	s.lastBaseRuntimeSync = t
 }
 
+func (s *runtimeState) SetRuntimeSync(t time.Time) {
+	s.Lock()
+	defer s.Unlock()
+	s.lastBaseRuntimeSync = t
+}
+
 func (s *runtimeState) setNetworkState(err error) {
 	s.Lock()
 	defer s.Unlock()

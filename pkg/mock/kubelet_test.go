@@ -395,9 +395,10 @@ func newTestKubeletWithImageList(
 	}
 
 	var prober volume.DynamicPluginProber // TODO (#51147) inject mock
-	klets.GetVolumePluginMgr, err =
+	volumePluginMgr, err :=
 		kubelet.NewInitializedVolumePluginMgr(klets, *klets.GetSecretManager(), *klets.GetConfigMapManager(), token.NewManager(*klets.GetKubeClient()), &clustertrustbundle.NoopManager{}, allPlugins, prober)
 	require.NoError(t, err, "Failed to initialize VolumePluginMgr")
+	*klets.GetVolumePluginMgr() = *volumePluginMgr
 
 	*klets.GetVolumeManager() = kubeletvolume.NewVolumeManager(
 		controllerAttachDetachEnabled,
@@ -452,10 +453,10 @@ func TestSyncLoopAbort(t *testing.T) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
-	(kubelet.GetRuntimeState).setRuntimeSync(time.Now())
+	(kubelet.GetRuntimeState()).SetRuntimeSync(time.Now())
 	// The syncLoop waits on time.After(resyncInterval), set it really big so that we don't race for
 	// the channel close
-	kubelet.ResyncInterval = time.Second * 30
+	*kubelet.GetResyncInterval() = time.Second * 30
 
 	ch := make(chan kubetypes.PodUpdate)
 	close(ch)
@@ -480,7 +481,7 @@ func TestSyncPodsStartPod(t *testing.T) {
 			},
 		}),
 	}
-	kubelet.podManager.SetPods(pods)
+	(*kubelet.GetPodManager()).SetPods(pods)
 	kubelet.HandlePodSyncs(pods)
 	fakeRuntime.AssertStartedPods([]string{string(pods[0].UID)})
 }
@@ -506,7 +507,7 @@ func TestHandlePodCleanupsPerQOS(t *testing.T) {
 		{Pod: pod},
 	}
 	kubelet := testKubelet.kubelet
-	kubelet.cgroupsPerQOS = true // enable cgroupsPerQOS to turn on the cgroups cleanup
+	*kubelet.GetCgroupsPerQOS() = true // enable cgroupsPerQOS to turn on the cgroups cleanup
 
 	// HandlePodCleanups gets called every 2 seconds within the Kubelet's
 	// housekeeping routine. This test registers the pod, removes the unwanted pod, then calls into
@@ -517,7 +518,7 @@ func TestHandlePodCleanupsPerQOS(t *testing.T) {
 	kubelet.HandlePodCleanups(ctx)
 
 	// assert that unwanted pods were killed
-	if actual, expected := kubelet.podWorkers.(*fakePodWorkers).triggeredDeletion, []types.UID{"12345678"}; !reflect.DeepEqual(actual, expected) {
+	if actual, expected := (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion, []types.UID{"12345678"}; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("expected %v to be deleted, got %v", expected, actual)
 	}
 	fakeRuntime.AssertKilledPods([]string(nil))
@@ -555,12 +556,12 @@ func TestDispatchWorkOfCompletedPod(t *testing.T) {
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
 	var got bool
-	kubelet.podWorkers = &fakePodWorkers{
+	*kubelet.GetPodWorkers() = &fakePodWorkers{
 		syncPodFn: func(ctx context.Context, updateType kubetypes.SyncPodType, pod, mirrorPod *v1.Pod, podStatus *kubecontainer.PodStatus) (bool, error) {
 			got = true
 			return false, nil
 		},
-		cache: kubelet.podCache,
+		cache: *kubelet.GetPodCache(),
 		t:     t,
 	}
 	now := metav1.NewTime(time.Now())
@@ -621,7 +622,7 @@ func TestDispatchWorkOfCompletedPod(t *testing.T) {
 		},
 	}
 	for _, pod := range pods {
-		kubelet.podWorkers.UpdatePod(UpdatePodOptions{
+		(*kubelet.GetPodWorkers()).UpdatePod(kubelet.UpdatePodOptions{
 			Pod:        pod,
 			UpdateType: kubetypes.SyncPodSync,
 			StartTime:  time.Now(),
@@ -638,12 +639,12 @@ func TestDispatchWorkOfActivePod(t *testing.T) {
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
 	var got bool
-	kubelet.podWorkers = &fakePodWorkers{
+	*kubelet.GetPodWorkers() = &fakePodWorkers{
 		syncPodFn: func(ctx context.Context, updateType kubetypes.SyncPodType, pod, mirrorPod *v1.Pod, podStatus *kubecontainer.PodStatus) (bool, error) {
 			got = true
 			return false, nil
 		},
-		cache: kubelet.podCache,
+		cache: *kubelet.GetPodCache(),
 		t:     t,
 	}
 	pods := []*v1.Pod{
@@ -679,7 +680,7 @@ func TestDispatchWorkOfActivePod(t *testing.T) {
 	}
 
 	for _, pod := range pods {
-		kubelet.podWorkers.UpdatePod(UpdatePodOptions{
+		(*kubelet.GetPodWorkers()).UpdatePod(kubelet.UpdatePodOptions{
 			Pod:        pod,
 			UpdateType: kubetypes.SyncPodSync,
 			StartTime:  time.Now(),
@@ -714,7 +715,7 @@ func TestHandlePodCleanups(t *testing.T) {
 	kubelet.HandlePodCleanups(ctx)
 
 	// assert that unwanted pods were queued to kill
-	if actual, expected := kubelet.podWorkers.(*fakePodWorkers).triggeredDeletion, []types.UID{"12345678"}; !reflect.DeepEqual(actual, expected) {
+	if actual, expected := (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion, []types.UID{"12345678"}; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("expected %v to be deleted, got %v", expected, actual)
 	}
 	fakeRuntime.AssertKilledPods([]string(nil))
@@ -748,13 +749,13 @@ func TestHandlePodRemovesWhenSourcesAreReady(t *testing.T) {
 		{Pod: fakePod},
 	}
 	kubelet := testKubelet.kubelet
-	kubelet.sourcesReady = config.NewSourcesReady(func(_ sets.String) bool { return ready })
+	*kubelet.GetSourcesReady() = config.NewSourcesReady(func(_ sets.String) bool { return ready })
 
 	kubelet.HandlePodRemoves(pods)
 	time.Sleep(2 * time.Second)
 
 	// Sources are not ready yet. Don't remove any pods.
-	if expect, actual := []types.UID(nil), kubelet.podWorkers.(*fakePodWorkers).triggeredDeletion; !reflect.DeepEqual(expect, actual) {
+	if expect, actual := []types.UID(nil), (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion; !reflect.DeepEqual(expect, actual) {
 		t.Fatalf("expected %v kills, got %v", expect, actual)
 	}
 
@@ -763,7 +764,7 @@ func TestHandlePodRemovesWhenSourcesAreReady(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Sources are ready. Remove unwanted pods.
-	if expect, actual := []types.UID{"1"}, kubelet.podWorkers.(*fakePodWorkers).triggeredDeletion; !reflect.DeepEqual(expect, actual) {
+	if expect, actual := []types.UID{"1"}, (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion; !reflect.DeepEqual(expect, actual) {
 		t.Fatalf("expected %v kills, got %v", expect, actual)
 	}
 }
@@ -787,7 +788,7 @@ func (nl testNodeLister) List(_ labels.Selector) (ret []*v1.Node, err error) {
 
 func checkPodStatus(t *testing.T, kl *kubelet.Kubelet, pod *v1.Pod, phase v1.PodPhase) {
 	t.Helper()
-	status, found := kl.statusManager.GetPodStatus(pod.UID)
+	status, found := (*kl.GetStatusManager()).GetPodStatus(pod.UID)
 	require.True(t, found, "Status of pod %q is not found in the status map", pod.UID)
 	require.Equal(t, phase, status.Phase)
 }
@@ -798,9 +799,9 @@ func TestHandlePortConflicts(t *testing.T) {
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
 
-	kl.nodeLister = testNodeLister{nodes: []*v1.Node{
+	*kl.GetNodeLister() = testNodeLister{nodes: []*v1.Node{
 		{
-			ObjectMeta: metav1.ObjectMeta{Name: string(kl.nodeName)},
+			ObjectMeta: metav1.ObjectMeta{Name: string(*kl.GetNodeName())},
 			Status: v1.NodeStatus{
 				Allocatable: v1.ResourceList{
 					v1.ResourcePods: *resource.NewQuantity(110, resource.DecimalSI),
@@ -817,9 +818,9 @@ func TestHandlePortConflicts(t *testing.T) {
 		Namespace: "",
 	}
 	testClusterDNSDomain := "TEST"
-	kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
-	spec := v1.PodSpec{NodeName: string(kl.nodeName), Containers: []v1.Container{{Ports: []v1.ContainerPort{{HostPort: 80}}}}}
+	spec := v1.PodSpec{NodeName: string(*kl.GetNodeName()), Containers: []v1.Container{{Ports: []v1.ContainerPort{{HostPort: 80}}}}}
 	pods := []*v1.Pod{
 		podWithUIDNameNsSpec("123456789", "newpod", "foo", spec),
 		podWithUIDNameNsSpec("987654321", "oldpod", "foo", spec),
@@ -830,7 +831,7 @@ func TestHandlePortConflicts(t *testing.T) {
 	// The newer pod should be rejected.
 	notfittingPod := pods[0]
 	fittingPod := pods[1]
-	kl.podWorkers.(*fakePodWorkers).running = map[types.UID]bool{
+	(*kl.GetPodWorkers()).(*fakePodWorkers).running = map[types.UID]bool{
 		pods[0].UID: true,
 		pods[1].UID: true,
 	}
@@ -848,7 +849,7 @@ func TestHandleHostNameConflicts(t *testing.T) {
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
 
-	kl.nodeLister = testNodeLister{nodes: []*v1.Node{
+	*kl.GetNodeLister() = testNodeLister{nodes: []*v1.Node{
 		{
 			ObjectMeta: metav1.ObjectMeta{Name: "127.0.0.1"},
 			Status: v1.NodeStatus{
@@ -867,7 +868,7 @@ func TestHandleHostNameConflicts(t *testing.T) {
 		Namespace: "",
 	}
 	testClusterDNSDomain := "TEST"
-	kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
 	// default NodeName in test is 127.0.0.1
 	pods := []*v1.Pod{
@@ -900,7 +901,7 @@ func TestHandleNodeSelector(t *testing.T) {
 			},
 		},
 	}
-	kl.nodeLister = testNodeLister{nodes: nodes}
+	*kl.GetNodeLister() = testNodeLister{nodes: nodes}
 
 	recorder := record.NewFakeRecorder(20)
 	nodeRef := &v1.ObjectReference{
@@ -910,7 +911,7 @@ func TestHandleNodeSelector(t *testing.T) {
 		Namespace: "",
 	}
 	testClusterDNSDomain := "TEST"
-	kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
 	pods := []*v1.Pod{
 		podWithUIDNameNsSpec("123456789", "podA", "foo", v1.PodSpec{NodeSelector: map[string]string{"key": "A"}}),
@@ -970,7 +971,7 @@ func TestHandleNodeSelectorBasedOnOS(t *testing.T) {
 					},
 				},
 			}
-			kl.nodeLister = testNodeLister{nodes: nodes}
+			*kl.GetNodeLister() = testNodeLister{nodes: nodes}
 
 			recorder := record.NewFakeRecorder(20)
 			nodeRef := &v1.ObjectReference{
@@ -980,7 +981,7 @@ func TestHandleNodeSelectorBasedOnOS(t *testing.T) {
 				Namespace: "",
 			}
 			testClusterDNSDomain := "TEST"
-			kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+			*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
 			pod := podWithUIDNameNsSpec("123456789", "podA", "foo", v1.PodSpec{NodeSelector: test.podSelector})
 
@@ -1005,7 +1006,7 @@ func TestHandleMemExceeded(t *testing.T) {
 				v1.ResourcePods:   *resource.NewQuantity(40, resource.DecimalSI),
 			}}},
 	}
-	kl.nodeLister = testNodeLister{nodes: nodes}
+	*kl.GetNodeLister() = testNodeLister{nodes: nodes}
 
 	recorder := record.NewFakeRecorder(20)
 	nodeRef := &v1.ObjectReference{
@@ -1015,9 +1016,9 @@ func TestHandleMemExceeded(t *testing.T) {
 		Namespace: "",
 	}
 	testClusterDNSDomain := "TEST"
-	kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
-	spec := v1.PodSpec{NodeName: string(kl.nodeName),
+	spec := v1.PodSpec{NodeName: string(*kl.GetNodeName()),
 		Containers: []v1.Container{{Resources: v1.ResourceRequirements{
 			Requests: v1.ResourceList{
 				v1.ResourceMemory: resource.MustParse("90"),
@@ -1034,7 +1035,7 @@ func TestHandleMemExceeded(t *testing.T) {
 	// The newer pod should be rejected.
 	notfittingPod := pods[0]
 	fittingPod := pods[1]
-	kl.podWorkers.(*fakePodWorkers).running = map[types.UID]bool{
+	(*kl.GetPodWorkers()).(*fakePodWorkers).running = map[types.UID]bool{
 		pods[0].UID: true,
 		pods[1].UID: true,
 	}
@@ -1070,7 +1071,7 @@ func TestHandlePluginResources(t *testing.T) {
 				v1.ResourcePods:  allowedPodQuantity,
 			}}},
 	}
-	kl.nodeLister = testNodeLister{nodes: nodes}
+	*kl.GetNodeLister() = testNodeLister{nodes: nodes}
 
 	updatePluginResourcesFunc := func(node *schedulerframework.NodeInfo, attrs *lifecycle.PodAdmitAttributes) error {
 		// Maps from resourceName to the value we use to set node.allocatableResource[resourceName].
@@ -1113,11 +1114,11 @@ func TestHandlePluginResources(t *testing.T) {
 		Namespace: "",
 	}
 	testClusterDNSDomain := "TEST"
-	kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
 	// pod requiring adjustedResource can be successfully allocated because updatePluginResourcesFunc
 	// adjusts node.allocatableResource for this resource to a sufficient value.
-	fittingPodSpec := v1.PodSpec{NodeName: string(kl.nodeName),
+	fittingPodSpec := v1.PodSpec{NodeName: string(*kl.GetNodeName()),
 		Containers: []v1.Container{{Resources: v1.ResourceRequirements{
 			Limits: v1.ResourceList{
 				adjustedResource: resourceQuantity2,
@@ -1129,7 +1130,7 @@ func TestHandlePluginResources(t *testing.T) {
 	}
 	// pod requiring emptyResource (extended resources with 0 allocatable) will
 	// not pass PredicateAdmit.
-	emptyPodSpec := v1.PodSpec{NodeName: string(kl.nodeName),
+	emptyPodSpec := v1.PodSpec{NodeName: string(*kl.GetNodeName()),
 		Containers: []v1.Container{{Resources: v1.ResourceRequirements{
 			Limits: v1.ResourceList{
 				emptyResource: resourceQuantity2,
@@ -1144,7 +1145,7 @@ func TestHandlePluginResources(t *testing.T) {
 	// Extended resources missing in node status are ignored in PredicateAdmit.
 	// This is required to support extended resources that are not managed by
 	// device plugin, such as cluster-level resources.
-	missingPodSpec := v1.PodSpec{NodeName: string(kl.nodeName),
+	missingPodSpec := v1.PodSpec{NodeName: string(*kl.GetNodeName()),
 		Containers: []v1.Container{{Resources: v1.ResourceRequirements{
 			Limits: v1.ResourceList{
 				missingResource: resourceQuantity2,
@@ -1155,7 +1156,7 @@ func TestHandlePluginResources(t *testing.T) {
 		}}},
 	}
 	// pod requiring failedResource will fail with the resource failed to be allocated.
-	failedPodSpec := v1.PodSpec{NodeName: string(kl.nodeName),
+	failedPodSpec := v1.PodSpec{NodeName: string(*kl.GetNodeName()),
 		Containers: []v1.Container{{Resources: v1.ResourceRequirements{
 			Limits: v1.ResourceList{
 				failedResource: resourceQuantity1,
@@ -2364,9 +2365,9 @@ func TestHandlePodAdditionsInvokesPodAdmitHandlers(t *testing.T) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
-	kl.nodeLister = testNodeLister{nodes: []*v1.Node{
+	*kl.GetNodeLister() = testNodeLister{nodes: []*v1.Node{
 		{
-			ObjectMeta: metav1.ObjectMeta{Name: string(kl.nodeName)},
+			ObjectMeta: metav1.ObjectMeta{Name: string(*kl.GetNodeName())},
 			Status: v1.NodeStatus{
 				Allocatable: v1.ResourceList{
 					v1.ResourcePods: *resource.NewQuantity(110, resource.DecimalSI),
@@ -2878,9 +2879,9 @@ func TestSyncLabels(t *testing.T) {
 			kl := testKubelet.kubelet
 			kubeClient := testKubelet.fakeKubeClient
 
-			test.existingNode.Name = string(kl.nodeName)
+			test.existingNode.Name = string(*kl.GetNodeName())
 
-			kl.nodeLister = testNodeLister{nodes: []*v1.Node{test.existingNode}}
+			*kl.GetNodeLister() = testNodeLister{nodes: []*v1.Node{test.existingNode}}
 			go func() { kl.syncNodeStatus() }()
 
 			err := retryWithExponentialBackOff(
