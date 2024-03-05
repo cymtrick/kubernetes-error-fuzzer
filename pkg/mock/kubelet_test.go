@@ -20,7 +20,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -239,14 +238,6 @@ func newTestKubeletWithImageList(
 	*klets.GetHostName() = testKubeletHostname
 	*klets.GetNodeName() = types.NodeName(testKubeletHostname)
 	fmt.Sprintf("%s", kubelet.MaxWaitForContainerRuntime)
-	defer func() {
-		if r := recover(); r != nil {
-			// Log the panic details
-			log.Printf("Panic recovered: %v\n", r)
-
-			// You may want to perform additional actions here, if needed.
-		}
-	}()
 
 	*klets.GetRuntimeState() = *kubelet.NewRuntimeState(kubelet.MaxWaitForContainerRuntime)
 	klets.GetRuntimeState().SetNetworkState(nil)

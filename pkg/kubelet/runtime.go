@@ -81,6 +81,12 @@ func (s *runtimeState) setRuntimeState(err error) {
 	s.runtimeError = err
 }
 
+func (s *runtimeState) SetRuntimeState(err error) {
+	s.Lock()
+	defer s.Unlock()
+	s.runtimeError = err
+}
+
 func (s *runtimeState) setStorageState(err error) {
 	s.Lock()
 	defer s.Unlock()
@@ -150,9 +156,18 @@ func newRuntimeState(runtimeSyncThreshold time.Duration) *runtimeState {
 
 // NewRuntimeState creates a new runtimeState
 func NewRuntimeState(runtimeSyncThreshold time.Duration) *runtimeState {
-	return &runtimeState{
+	fmt.Println("Inside NewRuntimeState", runtimeSyncThreshold)
+
+	if runtimeSyncThreshold == 0 {
+		fmt.Println("Warning: runtimeSyncThreshold is zero")
+	}
+	newState := &runtimeState{
 		lastBaseRuntimeSync:      time.Time{},
 		baseRuntimeSyncThreshold: runtimeSyncThreshold,
 		networkError:             errors.New("network unknown"),
 	}
+
+	fmt.Printf("NewRuntimeState created: %+v\n", newState)
+
+	return newState
 }

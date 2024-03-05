@@ -814,7 +814,14 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	// which affects node ready status. This function must be called before Kubelet is initialized so that the Node
 	// ReadyState is accurate with the storage state.
 	klet.volumePluginMgr, err =
-		NewInitializedVolumePluginMgr(klet, secretManager, configMapManager, tokenManager, clusterTrustBundleManager, kubeDeps.VolumePlugins, kubeDeps.DynamicPluginProber)
+		NewInitializedVolumePluginMgr(
+			klet,
+			secretManager,
+			configMapManager,
+			tokenManager,
+			clusterTrustBundleManager,
+			kubeDeps.VolumePlugins,
+			kubeDeps.DynamicPluginProber)
 	if err != nil {
 		return nil, err
 	}
@@ -1486,6 +1493,11 @@ func (kl *Kubelet) GetMounter() *mount.Interface {
 
 // GetRuntimeState returns a pointer to runtimeState
 func (kl *Kubelet) GetRuntimeState() *runtimeState {
+	// Check if runtimeState is nil, initialize it if needed
+	if kl.runtimeState == nil {
+		kl.runtimeState = newRuntimeState(MaxWaitForContainerRuntime)
+		fmt.Println("Initialized runtimeState in GetRuntimeState")
+	}
 	return kl.runtimeState
 }
 
@@ -1527,6 +1539,13 @@ func (kl *Kubelet) GetNodeHasSynced() *cache.InformerSynced {
 
 // GetDaemonEndpoints returns a pointer to v1.NodeDaemonEndpoints
 func (kl *Kubelet) GetDaemonEndpoints() *v1.NodeDaemonEndpoints {
+	fmt.Printf("Current daemon endpoints in GetDaemonEndpoints: %+v\n", kl.daemonEndpoints)
+
+	if kl.daemonEndpoints == nil {
+		kl.daemonEndpoints = &v1.NodeDaemonEndpoints{}
+		fmt.Println("Initialized daemonEndpoints in GetDaemonEndpoints")
+	}
+
 	return kl.daemonEndpoints
 }
 
@@ -1557,6 +1576,14 @@ func (kl *Kubelet) GetRuntimeCache() *kubecontainer.RuntimeCache {
 
 // GetReasonCache returns a pointer to ReasonCache
 func (kl *Kubelet) GetReasonCache() *ReasonCache {
+	fmt.Printf("Current reason cache in GetReasonCache: %+v\n", kl.reasonCache)
+
+	// Check if reasonCache is nil, initialize it if needed
+	if kl.reasonCache == nil {
+		kl.reasonCache = &ReasonCache{} // Replace this with your actual initialization logic
+		fmt.Println("Initialized reasonCache in GetReasonCache")
+	}
+
 	return kl.reasonCache
 }
 
@@ -1597,6 +1624,19 @@ func (kl *Kubelet) GetResourceAnalyzer() *serverstats.ResourceAnalyzer {
 
 // GetStatsProvider returns a pointer to stats.Provider
 func (kl *Kubelet) GetStatsProvider() *stats.Provider {
+	fmt.Printf("Current StatsProvider in GetStatsProvider: %+v\n", kl.StatsProvider)
+	if kl.StatsProvider == nil {
+		kl.StatsProvider = stats.NewCadvisorStatsProvider(
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+		) // Replace this with your actual initialization logic
+		fmt.Println("Initialized StatsProvider in GetStatsProvider")
+	}
 	return kl.StatsProvider
 }
 
@@ -1607,6 +1647,14 @@ func (kl *Kubelet) GetContainerGC() *kubecontainer.GC {
 
 // GetBackOff returns a pointer to flowcontrol.Backoff
 func (kl *Kubelet) GetBackOff() *flowcontrol.Backoff {
+	fmt.Printf("Current BackOff in GetBackOff: %+v\n", kl.backOff)
+
+	// Check if backOff is nil, initialize it if needed
+	if kl.backOff == nil {
+		kl.backOff = &flowcontrol.Backoff{}
+		fmt.Println("Initialized BackOff in GetBackOff")
+	}
+
 	return kl.backOff
 }
 
@@ -1647,6 +1695,27 @@ func (kl *Kubelet) GetShutdownManager() *nodeshutdown.Manager {
 
 // GetVolumePluginMgr returns a pointer to volume.VolumePluginMgr
 func (kl *Kubelet) GetVolumePluginMgr() *volume.VolumePluginMgr {
+	fmt.Printf("Current VolumePluginMgr in GetVolumePluginMgr: %+v\n", kl.volumePluginMgr)
+
+	// Check if volumePluginMgr is nil, initialize it if needed
+	if kl.volumePluginMgr == nil {
+		volumePluginMgr, err := NewInitializedVolumePluginMgr(
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+		) // Replace this with your actual initialization logic
+		if err != nil {
+			fmt.Println("Error initializing VolumePluginMgr in GetVolumePluginMgr")
+		}
+		kl.volumePluginMgr = volumePluginMgr
+
+		fmt.Println("Initialized VolumePluginMgr in GetVolumePluginMgr")
+	}
+
 	return kl.volumePluginMgr
 }
 
