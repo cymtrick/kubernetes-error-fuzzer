@@ -131,6 +131,23 @@ func applyNodeStatusPatch(originalNode *v1.Node, patch []byte) (*v1.Node, error)
 	return updatedNode, nil
 }
 
+func ApplyNodeStatusPatch(originalNode *v1.Node, patch []byte) (*v1.Node, error) {
+	original, err := json.Marshal(originalNode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal original node %#v: %v", originalNode, err)
+	}
+	updated, err := strategicpatch.StrategicMergePatch(original, patch, v1.Node{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to apply strategic merge patch %q on node %#v: %v",
+			patch, originalNode, err)
+	}
+	updatedNode := &v1.Node{}
+	if err := json.Unmarshal(updated, updatedNode); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal updated node %q: %v", updated, err)
+	}
+	return updatedNode, nil
+}
+
 func notImplemented(action core.Action) (bool, runtime.Object, error) {
 	return true, nil, fmt.Errorf("no reaction implemented for %s", action)
 }

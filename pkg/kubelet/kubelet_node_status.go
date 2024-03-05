@@ -532,6 +532,23 @@ func (kl *Kubelet) syncNodeStatus() {
 	}
 }
 
+func (kl *Kubelet) SyncNodeStatus() {
+	kl.syncNodeStatusMux.Lock()
+	defer kl.syncNodeStatusMux.Unlock()
+	ctx := context.Background()
+
+	if kl.kubeClient == nil || kl.heartbeatClient == nil {
+		return
+	}
+	if kl.registerNode {
+		// This will exit immediately if it doesn't need to do anything.
+		kl.registerWithAPIServer()
+	}
+	if err := kl.updateNodeStatus(ctx); err != nil {
+		klog.ErrorS(err, "Unable to update node status")
+	}
+}
+
 // updateNodeStatus updates node status to master with retries if there is any
 // change or enough time passed from the last sync.
 func (kl *Kubelet) updateNodeStatus(ctx context.Context) error {

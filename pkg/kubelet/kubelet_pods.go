@@ -968,6 +968,25 @@ func (kl *Kubelet) filterOutInactivePods(pods []*v1.Pod) []*v1.Pod {
 	return filteredPods
 }
 
+func (kl *Kubelet) FilterOutInactivePods(pods []*v1.Pod) []*v1.Pod {
+	filteredPods := make([]*v1.Pod, 0, len(pods))
+	for _, p := range pods {
+		// if a pod is fully terminated by UID, it should be excluded from the
+		// list of pods
+		if kl.podWorkers.IsPodKnownTerminated(p.UID) {
+			continue
+		}
+
+		// terminal pods are considered inactive UNLESS they are actively terminating
+		if kl.isAdmittedPodTerminal(p) && !kl.podWorkers.IsPodTerminationRequested(p.UID) {
+			continue
+		}
+
+		filteredPods = append(filteredPods, p)
+	}
+	return filteredPods
+}
+
 // isAdmittedPodTerminal returns true if the provided config source pod is in
 // a terminal phase, or if the Kubelet has already indicated the pod has reached
 // a terminal phase but the config source has not accepted it yet. This method
@@ -1399,6 +1418,11 @@ func (kl *Kubelet) validateContainerLogStatus(podName string, podStatus *v1.PodS
 	return kubecontainer.ParseContainerID(cID), nil
 }
 
+// ValidateContainerLogStatus returns the container ID for the desired container to retrieve logs for, based on the state
+func (kl *Kubelet) ValidateContainerLogStatus(podName string, podStatus *v1.PodStatus, containerName string, previous bool) (containerID kubecontainer.ContainerID, err error) {
+	return kl.validateContainerLogStatus(podName, podStatus, containerName, previous)
+}
+
 // GetKubeletContainerLogs returns logs from the container
 // TODO: this method is returning logs of random container attempts, when it should be returning the most recent attempt
 // or all of them.
@@ -1804,6 +1828,11 @@ func (kl *Kubelet) generateAPIPodStatus(pod *v1.Pod, podStatus *kubecontainer.Po
 	}
 
 	return *s
+}
+
+func (kl *Kubelet) GenerateAPIPodStatus(pod *v1.Pod, podStatus *kubecontainer.PodStatus, podIsTerminal bool) v1.PodStatus {
+
+	return kl.generateAPIPodStatus(pod, podStatus, podIsTerminal)
 }
 
 // sortPodIPs return the PodIPs sorted and truncated by the cluster IP family preference.

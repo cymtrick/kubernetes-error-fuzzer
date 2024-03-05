@@ -937,6 +937,8 @@ type serviceLister interface {
 	List(labels.Selector) ([]*v1.Service, error)
 }
 
+// Get InstrumenationScope returns the instrumentation scope for the Kubelet
+
 // Kubelet is the main kubelet implementation.
 type Kubelet struct {
 	kubeletConfiguration kubeletconfiginternal.KubeletConfiguration
@@ -1485,6 +1487,17 @@ func (kl *Kubelet) GetMounter() *mount.Interface {
 // GetRuntimeState returns a pointer to runtimeState
 func (kl *Kubelet) GetRuntimeState() *runtimeState {
 	return kl.runtimeState
+}
+
+// GetMachineInfo returns a pointer to cadvisorapi.MachineInfo
+func (kl *Kubelet) GetMachineInfo() *cadvisorapi.MachineInfo {
+
+	return kl.machineInfo
+}
+
+// GetRuntimeClassManager returns a pointer to runtimeclass.Manager
+func (kl *Kubelet) GetRuntimeClassManager() *runtimeclass.Manager {
+	return kl.runtimeClassManager
 }
 
 // GetHostUtil returns a pointer to hostutil
@@ -2576,6 +2589,30 @@ func (kl *Kubelet) getPodsToSync() []*v1.Pod {
 	return podsToSync
 }
 
+func (kl *Kubelet) GetPodsToSync() []*v1.Pod {
+	allPods := kl.podManager.GetPods()
+	podUIDs := kl.workQueue.GetWork()
+	podUIDSet := sets.NewString()
+	for _, podUID := range podUIDs {
+		podUIDSet.Insert(string(podUID))
+	}
+	var podsToSync []*v1.Pod
+	for _, pod := range allPods {
+		if podUIDSet.Has(string(pod.UID)) {
+			// The work of the pod is ready
+			podsToSync = append(podsToSync, pod)
+			continue
+		}
+		for _, podSyncLoopHandler := range kl.PodSyncLoopHandlers {
+			if podSyncLoopHandler.ShouldSync(pod) {
+				podsToSync = append(podsToSync, pod)
+				break
+			}
+		}
+	}
+	return podsToSync
+}
+
 // deletePod deletes the pod from the internal state of the kubelet by:
 // 1.  stopping the associated pod worker asynchronously
 // 2.  signaling to kill the pod by sending on the podKillingCh channel
@@ -3205,6 +3242,12 @@ func (kl *Kubelet) handlePodResourcesResize(pod *v1.Pod) *v1.Pod {
 	kl.podManager.UpdatePod(updatedPod)
 	kl.statusManager.SetPodStatus(updatedPod, updatedPod.Status)
 	return updatedPod
+}
+
+// HandlePodResourcesResize handles the resizing of pod resources.
+func (kl *Kubelet) HandlePodResourcesResize(pod *v1.Pod) *v1.Pod {
+
+	return kl.handlePodResourcesResize(pod)
 }
 
 // LatestLoopEntryTime returns the last time in the sync loop monitor.

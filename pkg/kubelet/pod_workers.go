@@ -284,6 +284,13 @@ type podSyncerFuncs struct {
 	syncTerminatedPod         syncTerminatedPodFnType
 }
 
+type PodSyncerFuncs struct {
+	syncPod                   syncPodFnType
+	syncTerminatingPod        syncTerminatingPodFnType
+	syncTerminatingRuntimePod syncTerminatingRuntimePodFnType
+	syncTerminatedPod         syncTerminatedPodFnType
+}
+
 func newPodSyncerFuncs(s podSyncer) podSyncerFuncs {
 	return podSyncerFuncs{
 		syncPod:                   s.SyncPod,
@@ -599,7 +606,95 @@ type podWorkers struct {
 	clock clock.PassiveClock
 }
 
+// PodWorkersEx represents an extended version of the PodWorkers struct.
+type PodWorkersEx struct {
+	// Protects all per worker fields.
+	podLock sync.Mutex
+	// podsSynced is true once the pod worker has been synced at least once,
+	// which means that all working pods have been started via UpdatePod().
+	podsSynced bool
+
+	// Tracks all running per-pod goroutines - per-pod goroutine will be
+	// processing updates received through its corresponding channel. Sending
+	// a message on this channel will signal the corresponding goroutine to
+	// consume podSyncStatuses[uid].pendingUpdate if set.
+	podUpdates map[types.UID]chan struct{}
+	// Tracks by UID the termination status of a pod - syncing, terminating,
+	// terminated, and evicted.
+	podSyncStatuses map[types.UID]*podSyncStatus
+
+	// Tracks all uids for started static pods by full name
+	startedStaticPodsByFullname map[string]types.UID
+	// Tracks all uids for static pods that are waiting to start by full name
+	waitingToStartStaticPodsByFullname map[string][]types.UID
+
+	workQueue queue.WorkQueue
+
+	// This function is run to sync the desired state of pod.
+	// NOTE: This function has to be thread-safe - it can be called for
+	// different pods at the same time.
+	podSyncer podSyncer
+
+	// workerChannelFn is exposed for testing to allow unit tests to impose delays
+	// in channel communication. The function is invoked once each time a new worker
+	// goroutine starts.
+	workerChannelFn func(uid types.UID, in chan struct{}) (out <-chan struct{})
+
+	// The EventRecorder to use
+	recorder record.EventRecorder
+
+	// backOffPeriod is the duration to back off when there is a sync error.
+	backOffPeriod time.Duration
+
+	// resyncInterval is the duration to wait until the next sync.
+	resyncInterval time.Duration
+
+	// podCache stores kubecontainer.PodStatus for all pods.
+	podCache kubecontainer.Cache
+
+	// clock is used for testing timing
+	clock clock.PassiveClock
+}
+
+// GetClock returns the clock used by the podWorkers.
+func (p *PodWorkersEx) GetClock() clock.PassiveClock {
+	return p.clock
+}
+
+// GetPodLock returns the lock used by the podWorkers.
+func (p *PodWorkersEx) GetPodLock() *sync.Mutex {
+	return &p.podLock
+}
+
+// GetPodSyncStatuses returns the podSyncStatuses used by the podWorkers.
+func (p *PodWorkersEx) GetPodSyncStatuses() map[types.UID]*podSyncStatus {
+	return p.podSyncStatuses
+}
+
 func newPodWorkers(
+	podSyncer podSyncer,
+	recorder record.EventRecorder,
+	workQueue queue.WorkQueue,
+	resyncInterval, backOffPeriod time.Duration,
+	podCache kubecontainer.Cache,
+) PodWorkers {
+	return &podWorkers{
+		podSyncStatuses:                    map[types.UID]*podSyncStatus{},
+		podUpdates:                         map[types.UID]chan struct{}{},
+		startedStaticPodsByFullname:        map[string]types.UID{},
+		waitingToStartStaticPodsByFullname: map[string][]types.UID{},
+		podSyncer:                          podSyncer,
+		recorder:                           recorder,
+		workQueue:                          workQueue,
+		resyncInterval:                     resyncInterval,
+		backOffPeriod:                      backOffPeriod,
+		podCache:                           podCache,
+		clock:                              clock.RealClock{},
+	}
+}
+
+// NewPodWorkers returns a new instance of PodWorkers.
+func NewPodWorkers(
 	podSyncer podSyncer,
 	recorder record.EventRecorder,
 	workQueue queue.WorkQueue,

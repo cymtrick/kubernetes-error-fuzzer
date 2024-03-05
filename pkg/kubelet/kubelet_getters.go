@@ -97,6 +97,10 @@ func (kl *Kubelet) getCheckpointsDir() string {
 	return filepath.Join(kl.getRootDir(), config.DefaultKubeletCheckpointsDirName)
 }
 
+func (kl *Kubelet) GetCheckpointsDir() string {
+	return filepath.Join(kl.getRootDir(), config.DefaultKubeletCheckpointsDirName)
+}
+
 // getVolumeDevicePluginsDir returns the full path to the directory under which plugin
 // directories are created.  Plugins can use these directories for data that
 // they need to persist.  Plugins should create subdirectories under this named

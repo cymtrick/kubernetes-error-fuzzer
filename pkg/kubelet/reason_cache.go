@@ -68,6 +68,12 @@ func (c *ReasonCache) add(uid types.UID, name string, reason error, message stri
 	c.cache.Add(c.composeKey(uid, name), ReasonItem{reason, message})
 }
 
+func (c *ReasonCache) Add(uid types.UID, name string, reason error, message string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.Add(c.composeKey(uid, name), ReasonItem{reason, message})
+}
+
 // Update updates the reason cache with the SyncPodResult. Only SyncResult with
 // StartContainer action will change the cache.
 func (c *ReasonCache) Update(uid types.UID, result kubecontainer.PodSyncResult) {
