@@ -57,6 +57,7 @@ cscope.*
 # Vagrant
 .vagrant
 network_closure.sh
+libpodfuzzer.a 
 
 # Local cluster env variables
 /cluster/env.sh
