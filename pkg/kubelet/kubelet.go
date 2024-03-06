@@ -1700,7 +1700,7 @@ func (kl *Kubelet) GetVolumePluginMgr() *volume.VolumePluginMgr {
 	// Check if volumePluginMgr is nil, initialize it if needed
 	if kl.volumePluginMgr == nil {
 		volumePluginMgr, err := NewInitializedVolumePluginMgr(
-			nil,
+			kl,
 			nil,
 			nil,
 			nil,

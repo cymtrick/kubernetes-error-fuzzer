@@ -3,37 +3,24 @@ package main
 import (
 	"C"
 	"fmt"
-	"log"
 	"math/rand"
 	"runtime"
 	"strings"
 	"time"
 
+	"testing"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	mock "k8s.io/kubernetes/pkg/mock"
 )
 
+// FuzzPodMutator is the exported function for fuzzing pod mutator.
+//
 //export FuzzPodMutator
 func FuzzPodMutator(data *C.char, size C.size_t) {
-	mutatedStrings := make([]string, 4)
-	for i := 0; i < 4; i++ {
-		// hexData := C.GoStringN(data, C.int(size))
-		// asciiSafeData := mutateToASCIIRange(hexData)
-		// randomString := generateRandomString(10) // Adjust the length as needed
-		// mutatedStrings[i] = asciiSafeData + randomString
-		mutatedStrings[i] = C.GoStringN(data, C.int(size))
-	}
-	yamlDataTemplate := generateYAMLWithRandomStrings(mutatedStrings)
-	pods, err := generatePodsFromYAML(yamlDataTemplate)
-	if err != nil {
-		// Handle the error more gracefully
-		log.Printf("Error generating pods from YAML: %v", err)
-		return
-	}
-
-	for _, pod := range pods {
-		processFuzzedPod(pod)
-	}
+	t := new(testing.T)
+	mock.TestHandlePodCleanupsPerQOS(t)
 }
 func mutateToASCIIRange(hexData string) string {
 	result := ""
