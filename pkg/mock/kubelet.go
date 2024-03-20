@@ -43,6 +43,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"k8s.io/mount-utils"
 
+	protobuf "staging/src/k8s.io/apimachinery/pkg/util/protobuf"
+
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -158,10 +160,11 @@ type TestKubelet struct {
 }
 
 type fakePodWorkers struct {
-	lock      sync.Mutex
-	syncPodFn kubelet.SyncPodFnType
-	cache     kubecontainer.Cache
-	t         TestingInterface
+	lock       sync.Mutex
+	syncPodFn  kubelet.SyncPodFnType
+	cache      kubecontainer.Cache
+	t          TestingInterface
+	randomData []byte
 
 	triggeredDeletion []types.UID
 	triggeredTerminal []types.UID
@@ -492,6 +495,7 @@ func TestSyncLoopAbort(t *testing.T) {
 }
 
 func TestSyncPodsStartPod(t *testing.T) {
+	protobuf.Decode(nil, nil)
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
@@ -508,17 +512,18 @@ func TestSyncPodsStartPod(t *testing.T) {
 	fakeRuntime.AssertStartedPods([]string{string(pods[0].UID)})
 }
 
-func TestHandlePodCleanupsPerQOS(t *testing.T) {
+func TestHandlePodCleanupsPerQOS(t *testing.T, randomStrings []string) {
 	ctx := context.Background()
+	fmt.Println("randomStrings: ", randomStrings)
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 
 	pod := &kubecontainer.Pod{
 		ID:        "12345678",
-		Name:      "foo",
-		Namespace: "new",
+		Name:      randomStrings[0],
+		Namespace: randomStrings[1],
 		Containers: []*kubecontainer.Container{
-			{Name: "bar"},
+			{Name: randomStrings[2]},
 		},
 	}
 
@@ -656,7 +661,7 @@ func TestDispatchWorkOfCompletedPod(t *testing.T) {
 	}
 }
 
-func TestDispatchWorkOfActivePod(t *testing.T) {
+func TestDispatchWorkOfActivePod(t *testing.T, randomData []byte) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
@@ -673,8 +678,8 @@ func TestDispatchWorkOfActivePod(t *testing.T) {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				UID:         "sdf",
-				Name:        "sfdfdfsdf",
-				Namespace:   "ns",
+				Name:        randomData,
+				Namespace:   randomData,
 				Annotations: make(map[string]string),
 			},
 			Status: v1.PodStatus{
@@ -684,8 +689,8 @@ func TestDispatchWorkOfActivePod(t *testing.T) {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				UID:         "2",
-				Name:        "active-pod2",
-				Namespace:   "ns",
+				Name:        randomData,
+				Namespace:   randomData,
 				Annotations: make(map[string]string),
 			},
 			Status: v1.PodStatus{

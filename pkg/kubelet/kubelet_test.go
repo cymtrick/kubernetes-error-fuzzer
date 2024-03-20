@@ -371,7 +371,7 @@ func newTestKubeletWithImageList(
 	kubelet.admitHandlers.AddPodAdmitHandler(shutdownAdmitHandler)
 
 	// Add this as cleanup predicate pod admitter
-	kubelet.admitHandlers.AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(kubelet.GetNodeAnyWay, lifecycle.NewAdmissionFailureHandlerStub(), kubelet.containerManager.UpdatePluginResources))
+	kubelet.admitHandlers.AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(kubelet.getNodeAnyWay, lifecycle.NewAdmissionFailureHandlerStub(), kubelet.containerManager.UpdatePluginResources))
 
 	allPlugins := []volume.VolumePlugin{}
 	plug := &volumetest.FakeVolumePlugin{PluginName: "fake", Host: nil}
@@ -382,7 +382,7 @@ func newTestKubeletWithImageList(
 	}
 
 	var prober volume.DynamicPluginProber // TODO (#51147) inject mock
-	kubelet.VolumePluginMgr, err =
+	kubelet.volumePluginMgr, err =
 		NewInitializedVolumePluginMgr(kubelet, kubelet.secretManager, kubelet.configMapManager, token.NewManager(kubelet.kubeClient), &clustertrustbundle.NoopManager{}, allPlugins, prober)
 	require.NoError(t, err, "Failed to initialize VolumePluginMgr")
 

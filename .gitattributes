@@ -1,9 +1,7 @@
 # Always check-out / check-in files with LF line endings.
 * text=auto eol=lf
-
 hack/verify-flags/known-flags.txt merge=union
 test/test_owners.csv merge=union
-
 **/zz_generated.*.go linguist-generated=true
 **/types.generated.go linguist-generated=true
 **/generated.pb.go linguist-generated=true
