@@ -1573,7 +1573,6 @@ func (kl *Kubelet) GetRuntimeCache() *kubecontainer.RuntimeCache {
 
 // GetReasonCache returns a pointer to ReasonCache
 func (kl *Kubelet) GetReasonCache() *ReasonCache {
-	fmt.Printf("Current reason cache in GetReasonCache: %+v\n", kl.reasonCache)
 
 	if kl.reasonCache == nil {
 		kl.reasonCache = &ReasonCache{}
@@ -1619,7 +1618,6 @@ func (kl *Kubelet) GetResourceAnalyzer() *serverstats.ResourceAnalyzer {
 
 // GetStatsProvider returns a pointer to stats.Provider
 func (kl *Kubelet) GetStatsProvider() *stats.Provider {
-	fmt.Printf("Current StatsProvider in GetStatsProvider: %+v\n", kl.StatsProvider)
 	if kl.StatsProvider == nil {
 		kl.StatsProvider = stats.NewCadvisorStatsProvider(
 			nil,

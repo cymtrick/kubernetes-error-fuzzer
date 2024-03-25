@@ -2,7 +2,6 @@ package main
 
 import (
 	"C"
-
 	"testing"
 
 	mock "k8s.io/kubernetes/pkg/mock"
@@ -12,9 +11,9 @@ import (
 //
 //export FuzzPodMutator
 func FuzzPodMutator(data *C.char, size C.size_t) {
-	mutatedStrings := data
+	mutatedStrings := C.GoStringN(data, C.int(size))
 	t := new(testing.T)
-	mock.TestDispatchWorkOfActivePod(t, mutatedStrings)
+	mock.TestHandleHostNameConflicts(t, mutatedStrings)
 }
 
 // func mutateToASCIIRange(hexData string) string {
@@ -114,9 +113,9 @@ func FuzzPodMutator(data *C.char, size C.size_t) {
 // 	}
 // }
 
-// func main() {
-// 	// Keep this running or use a mechanism to keep it alive for fuzzing
-// 	select {}
-// }
+func main() {
+	// Keep this running or use a mechanism to keep it alive for fuzzing
+	select {}
+}
 
 // //go build -o libgofuzzer.so -buildmode=c-shared FUZZ_TARGET.go

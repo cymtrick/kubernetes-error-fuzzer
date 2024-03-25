@@ -156,7 +156,6 @@ func newRuntimeState(runtimeSyncThreshold time.Duration) *runtimeState {
 
 // NewRuntimeState creates a new runtimeState
 func NewRuntimeState(runtimeSyncThreshold time.Duration) *runtimeState {
-	fmt.Println("Inside NewRuntimeState", runtimeSyncThreshold)
 
 	if runtimeSyncThreshold == 0 {
 		fmt.Println("Warning: runtimeSyncThreshold is zero")
@@ -167,7 +166,7 @@ func NewRuntimeState(runtimeSyncThreshold time.Duration) *runtimeState {
 		networkError:             errors.New("network unknown"),
 	}
 
-	fmt.Printf("NewRuntimeState created: %+v\n", newState)
+	// fmt.Printf("NewRuntimeState created: %+v\n", newState)
 
 	return newState
 }

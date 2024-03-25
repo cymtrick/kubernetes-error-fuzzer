@@ -43,8 +43,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"k8s.io/mount-utils"
 
-	protobuf "staging/src/k8s.io/apimachinery/pkg/util/protobuf"
-
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -495,7 +493,6 @@ func TestSyncLoopAbort(t *testing.T) {
 }
 
 func TestSyncPodsStartPod(t *testing.T) {
-	protobuf.Decode(nil, nil)
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
@@ -661,7 +658,7 @@ func TestDispatchWorkOfCompletedPod(t *testing.T) {
 	}
 }
 
-func TestDispatchWorkOfActivePod(t *testing.T, randomData []byte) {
+func TestDispatchWorkOfActivePod(t *testing.T, randomData string) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
@@ -677,7 +674,7 @@ func TestDispatchWorkOfActivePod(t *testing.T, randomData []byte) {
 	pods := []*v1.Pod{
 		{
 			ObjectMeta: metav1.ObjectMeta{
-				UID:         "sdf",
+				UID:         types.UID(randomData),
 				Name:        randomData,
 				Namespace:   randomData,
 				Annotations: make(map[string]string),
@@ -688,7 +685,7 @@ func TestDispatchWorkOfActivePod(t *testing.T, randomData []byte) {
 		},
 		{
 			ObjectMeta: metav1.ObjectMeta{
-				UID:         "2",
+				UID:         types.UID(randomData),
 				Name:        randomData,
 				Namespace:   randomData,
 				Annotations: make(map[string]string),
@@ -719,17 +716,17 @@ func TestDispatchWorkOfActivePod(t *testing.T, randomData []byte) {
 	}
 }
 
-func TestHandlePodCleanups(t *testing.T) {
+func TestHandlePodCleanups(t *testing.T, randomData string) {
 	ctx := context.Background()
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 
 	pod := &kubecontainer.Pod{
-		ID:        "12345678",
-		Name:      "foo",
-		Namespace: "new",
+		ID:        types.UID(randomData),
+		Name:      randomData,
+		Namespace: randomData,
 		Containers: []*kubecontainer.Container{
-			{Name: "bar"},
+			{Name: randomData},
 		},
 	}
 
@@ -742,7 +739,7 @@ func TestHandlePodCleanups(t *testing.T) {
 	kubelet.HandlePodCleanups(ctx)
 
 	// assert that unwanted pods were queued to kill
-	if actual, expected := (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion, []types.UID{"12345678"}; !reflect.DeepEqual(actual, expected) {
+	if actual, expected := (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion, []types.UID{types.UID(randomData)}; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("expected %v to be deleted, got %v", expected, actual)
 	}
 	fakeRuntime.AssertKilledPods([]string(nil))
@@ -871,7 +868,7 @@ func TestHandlePortConflicts(t *testing.T) {
 }
 
 // Tests that we handle host name conflicts correctly by setting the failed status in status map.
-func TestHandleHostNameConflicts(t *testing.T) {
+func TestHandleHostNameConflicts(t *testing.T, randomData string) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
@@ -892,15 +889,15 @@ func TestHandleHostNameConflicts(t *testing.T) {
 		Kind:      "Node",
 		Name:      "testNode",
 		UID:       types.UID("testNode"),
-		Namespace: "",
+		Namespace: randomData,
 	}
 	testClusterDNSDomain := "TEST"
 	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
 	// default NodeName in test is 127.0.0.1
 	pods := []*v1.Pod{
-		podWithUIDNameNsSpec("123456789", "notfittingpod", "foo", v1.PodSpec{NodeName: "127.0.0.2"}),
-		podWithUIDNameNsSpec("987654321", "fittingpod", "foo", v1.PodSpec{NodeName: "127.0.0.1"}),
+		podWithUIDNameNsSpec(types.UID(randomData), randomData, randomData, v1.PodSpec{NodeName: "127.0.0.2"}),
+		podWithUIDNameNsSpec(types.UID(randomData), randomData, randomData, v1.PodSpec{NodeName: "127.0.0.1"}),
 	}
 
 	notfittingPod := pods[0]
@@ -938,7 +935,7 @@ func TestHandleNodeSelector(t *testing.T) {
 		Namespace: "",
 	}
 	testClusterDNSDomain := "TEST"
-	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+	kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
 	pods := []*v1.Pod{
 		podWithUIDNameNsSpec("123456789", "podA", "foo", v1.PodSpec{NodeSelector: map[string]string{"key": "A"}}),
