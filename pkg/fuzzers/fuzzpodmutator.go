@@ -2,120 +2,103 @@ package main
 
 import (
 	"C"
-	"testing"
+	"fmt"
+	"unsafe"
 
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer/protobuf"
 	mock "k8s.io/kubernetes/pkg/mock"
 )
+import (
+	"testing"
+	"time"
+)
 
-// FuzzPodMutator is the exported function for fuzzing pod mutator.
+// FuzzUnknownObjectMutator is the exported function for fuzzing unknown object mutator.
 //
-//export FuzzPodMutator
-func FuzzPodMutator(data *C.char, size C.size_t) {
-	mutatedStrings := C.GoStringN(data, C.int(size))
+//export FuzzUnknownObjectMutator
+func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	dataSlice := C.GoBytes(dataPtr, C.int(dataSize))
 	t := new(testing.T)
-	mock.TestHandleHostNameConflicts(t, mutatedStrings)
+	now := metav1.Now()
+	startTime := metav1.NewTime(now.Time.Add(-1 * time.Minute))
+	exceededActiveDeadlineSeconds := int64(30)
+	obj1 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cool",
+			Namespace: "test",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{Name: "foo"},
+			},
+			ActiveDeadlineSeconds: &exceededActiveDeadlineSeconds,
+		},
+		Status: v1.PodStatus{
+			StartTime: &startTime,
+		},
+	}
+	obj1wire, err := obj1.Marshal()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("Go bytes in hex format: %x\n", obj1wire)
+	wire1, err := (&runtime.Unknown{
+		TypeMeta: runtime.TypeMeta{Kind: "Pod", APIVersion: "v1"},
+		Raw:      dataSlice,
+	}).Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	wire1 = append([]byte{0x6b, 0x38, 0x73, 0x00}, wire1...)
+
+	obj1WithKind := obj1.DeepCopyObject()
+	obj1WithKind.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Pod"})
+	testCases := []struct {
+		obj   runtime.Object
+		data  []byte
+		errFn func(error) bool
+	}{
+		{
+			obj:  obj1WithKind,
+			data: wire1,
+		},
+	}
+	scheme := runtime.NewScheme()
+	for i, test := range testCases {
+		scheme.AddKnownTypes(schema.GroupVersion{Version: "v1"}, &v1.Pod{})
+		fmt.Printf("Go bytes in hex format: %x\n", test.data)
+		s := protobuf.NewSerializer(scheme, scheme)
+		obj, err := runtime.Decode(s, test.data)
+
+		switch {
+		case err == nil && test.errFn != nil:
+			t.Errorf("%d: failed: %v", i, err)
+			continue
+		case err != nil && test.errFn == nil:
+			t.Errorf("%d: failed: %v", i, err)
+			continue
+		case err != nil:
+			if !test.errFn(err) {
+				t.Errorf("%d: failed: %v", i, err)
+			}
+			if obj != nil {
+				t.Errorf("%d: should not have returned an object", i)
+			}
+			continue
+		}
+		fmt.Printf("Received data in Go: %v\n", obj)
+
+	}
+
+	mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t)
 }
-
-// func mutateToASCIIRange(hexData string) string {
-// 	result := ""
-// 	for i := 0; i < len(hexData); i += 2 {
-// 		byteValue := hexData[i : i+2]
-// 		asciiValue := uint8((byteValue[0]-'0')*16 + (byteValue[1] - '0'))
-// 		if asciiValue < 32 {
-// 			// Ensure that the ASCII value stays within the printable range
-// 			asciiValue = 32
-// 		} else if asciiValue > 126 {
-// 			asciiValue = 126
-// 		}
-// 		result += string(asciiValue)
-// 	}
-// 	return result
-// }
-// func generateYAMLWithRandomStrings(randomStrings []string) string {
-// 	yamlTemplate := `
-// apiVersion: v1
-// kind: Pod
-// metadata:
-//   name: pod-%s
-//   labels:
-//     app: %s
-// spec:
-//   containers:
-//   - name: container-%s
-//     image: nginx
-// `
-// 	combinedYAML := ""
-// 	for i := 0; i < 4; i++ {
-// 		combinedYAML += fmt.Sprintf(yamlTemplate, randomStrings[i], randomStrings[i], randomStrings[i])
-// 	}
-
-// 	return combinedYAML
-// }
-
-// func generateRandomString(length int) string {
-// 	rand.NewSource(time.Now().UnixNano())
-// 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-// 	result := make([]byte, length)
-// 	for i := range result {
-// 		result[i] = charset[rand.Intn(len(charset))]
-// 	}
-// 	return string(result)
-// }
-
-// func generatePodsFromYAML(yamlData string) ([]*unstructured.Unstructured, error) {
-// 	decoder := yaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlData), 4096)
-
-// 	var pods []*unstructured.Unstructured
-
-// 	for {
-// 		pod := &unstructured.Unstructured{}
-// 		err := decoder.Decode(pod)
-// 		if err != nil {
-// 			// Handle the end of the YAML stream
-
-// 			break
-
-// 		}
-
-// 		pods = append(pods, pod)
-// 	}
-
-// 	return pods, nil
-// }
-
-// func processFuzzedPod(pod *unstructured.Unstructured) {
-// 	defer catchPanics()
-
-// 	fmt.Println("Fuzzing with Pod:")
-// 	fmt.Printf("API Version: %s\n", pod.GetAPIVersion())
-// 	fmt.Printf("Kind: %s\n", pod.GetKind())
-// 	fmt.Printf("Metadata: %v\n", pod.Object["metadata"])
-// 	fmt.Printf("Spec: %v\n", pod.Object["spec"])
-// }
-
-// func catchPanics() {
-// 	if r := recover(); r != nil {
-// 		var err string
-// 		switch r.(type) {
-
-// 		case string:
-// 			err = r.(string)
-// 		case runtime.Error:
-// 			err = r.(runtime.Error).Error()
-// 		case error:
-// 			err = r.(error).Error()
-// 		}
-// 		if strings.Contains(err, "GO-FUZZ-BUILD-PANIC") {
-// 			return
-// 		} else {
-// 			panic(err)
-// 		}
-// 	}
-// }
 
 func main() {
 	// Keep this running or use a mechanism to keep it alive for fuzzing
 	select {}
 }
-
-// //go build -o libgofuzzer.so -buildmode=c-shared FUZZ_TARGET.go

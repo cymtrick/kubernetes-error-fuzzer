@@ -716,19 +716,10 @@ func TestDispatchWorkOfActivePod(t *testing.T, randomData string) {
 	}
 }
 
-func TestHandlePodCleanups(t *testing.T, randomData string) {
+func TestHandlePodCleanups(t *testing.T, pod *kubecontainer.Pod) {
 	ctx := context.Background()
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
-
-	pod := &kubecontainer.Pod{
-		ID:        types.UID(randomData),
-		Name:      randomData,
-		Namespace: randomData,
-		Containers: []*kubecontainer.Container{
-			{Name: randomData},
-		},
-	}
 
 	fakeRuntime := testKubelet.fakeRuntime
 	fakeRuntime.PodList = []*containertest.FakePod{
@@ -739,7 +730,7 @@ func TestHandlePodCleanups(t *testing.T, randomData string) {
 	kubelet.HandlePodCleanups(ctx)
 
 	// assert that unwanted pods were queued to kill
-	if actual, expected := (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion, []types.UID{types.UID(randomData)}; !reflect.DeepEqual(actual, expected) {
+	if actual, expected := (*kubelet.GetPodWorkers()).(*fakePodWorkers).triggeredDeletion, []types.UID{pod.ID}; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("expected %v to be deleted, got %v", expected, actual)
 	}
 	fakeRuntime.AssertKilledPods([]string(nil))
@@ -935,7 +926,7 @@ func TestHandleNodeSelector(t *testing.T) {
 		Namespace: "",
 	}
 	testClusterDNSDomain := "TEST"
-	kl.dnsConfigurer = dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
+	*kl.GetDNSConfigurer() = *dns.NewConfigurer(recorder, nodeRef, nil, nil, testClusterDNSDomain, "")
 
 	pods := []*v1.Pod{
 		podWithUIDNameNsSpec("123456789", "podA", "foo", v1.PodSpec{NodeSelector: map[string]string{"key": "A"}}),

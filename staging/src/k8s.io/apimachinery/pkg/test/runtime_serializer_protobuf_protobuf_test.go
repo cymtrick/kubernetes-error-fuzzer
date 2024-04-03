@@ -292,6 +292,8 @@ func TestDecodeObjects(t *testing.T) {
 		},
 	}
 	obj1wire, err := obj1.Marshal()
+
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -334,6 +336,7 @@ func TestDecodeObjects(t *testing.T) {
 	for i, test := range testCases {
 		scheme.AddKnownTypes(schema.GroupVersion{Version: "v1"}, &v1.Carp{})
 		require.NoError(t, v1.AddToScheme(scheme))
+		fmt.Printf("Go bytes in hex format: %x\n", test.data)
 		s := protobuf.NewSerializer(scheme, scheme)
 		obj, err := runtime.Decode(s, test.data)
 

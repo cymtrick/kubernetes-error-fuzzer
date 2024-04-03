@@ -409,6 +409,27 @@ func unmarshalToObject(typer runtime.ObjectTyper, creater runtime.ObjectCreater,
 	return obj, actual, nil
 }
 
+// UnmarshalToObject is the common code between decode in the raw and normal serializer.
+func UnmarshalToObject(typer runtime.ObjectTyper, creater runtime.ObjectCreater, actual *schema.GroupVersionKind, into runtime.Object, data []byte) (runtime.Object, *schema.GroupVersionKind, error) {
+	// use the target if necessary
+	obj, err := runtime.UseOrCreateObject(typer, creater, *actual, into)
+	if err != nil {
+		return nil, actual, err
+	}
+
+	pb, ok := obj.(proto.Message)
+	if !ok {
+		return nil, actual, errNotMarshalable{reflect.TypeOf(obj)}
+	}
+	if err := proto.Unmarshal(data, pb); err != nil {
+		return nil, actual, err
+	}
+	if actual != nil {
+		obj.GetObjectKind().SetGroupVersionKind(*actual)
+	}
+	return obj, actual, nil
+}
+
 // Encode serializes the provided object to the given writer. Overrides is ignored.
 func (s *RawSerializer) Encode(obj runtime.Object, w io.Writer) error {
 	return s.encode(obj, w, &runtime.SimpleAllocator{})
