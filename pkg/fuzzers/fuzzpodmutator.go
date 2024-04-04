@@ -54,6 +54,7 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Printf("Go bytes in hex format: %x\n", dataSlice)
 	wire1 = append([]byte{0x6b, 0x38, 0x73, 0x00}, wire1...)
 
 	obj1WithKind := obj1.DeepCopyObject()
@@ -92,10 +93,15 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 			continue
 		}
 		fmt.Printf("Received data in Go: %v\n", obj)
+		if pod, ok := obj.(*v1.Pod); ok {
+			fmt.Printf("Successfully decoded Pod: %s/%s\n", pod.Namespace, pod.Name)
+			mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
+		} else {
+			fmt.Println("Decoded object is not a *v1.Pod")
+		}
 
 	}
 
-	mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t)
 }
 
 func main() {

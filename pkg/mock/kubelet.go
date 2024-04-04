@@ -1708,34 +1708,14 @@ func TestCheckpointContainer(t *testing.T) {
 	}
 }
 
-func TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t *testing.T) {
+// TestSyncPodsSetStatusToFailedForPodsThatRunTooLong checking fuzz
+func TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t *testing.T, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	fakeRuntime := testKubelet.fakeRuntime
 	kubelet := testKubelet.kubelet
 
-	now := metav1.Now()
-	startTime := metav1.NewTime(now.Time.Add(-1 * time.Minute))
-	exceededActiveDeadlineSeconds := int64(30)
-
-	pods := []*v1.Pod{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				UID:       "12345678",
-				Name:      "bar",
-				Namespace: "new",
-			},
-			Spec: v1.PodSpec{
-				Containers: []v1.Container{
-					{Name: "foo"},
-				},
-				ActiveDeadlineSeconds: &exceededActiveDeadlineSeconds,
-			},
-			Status: v1.PodStatus{
-				StartTime: &startTime,
-			},
-		},
-	}
+	pods := []*v1.Pod{pod}
 
 	fakeRuntime.PodList = []*containertest.FakePod{
 		{Pod: &kubecontainer.Pod{
