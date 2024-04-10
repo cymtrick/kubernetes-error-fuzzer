@@ -21,6 +21,11 @@ import (
 //
 //export FuzzUnknownObjectMutator
 func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		fmt.Println("Recovered from panic in FuzzUnknownObjectMutator:", r)
+	// 	}
+	// }()
 	dataSlice := C.GoBytes(dataPtr, C.int(dataSize))
 	t := new(testing.T)
 	now := metav1.Now()
@@ -94,8 +99,11 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 		}
 		fmt.Printf("Received data in Go: %v\n", obj)
 		if pod, ok := obj.(*v1.Pod); ok {
-			fmt.Printf("Successfully decoded Pod: %s/%s\n", pod.Namespace, pod.Name)
-			mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
+			// mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
+
+			// err := mock.TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t, pod)()
+			mock.TestDoesNotDeletePodDirsIfContainerIsRunning(t, pod)
+
 		} else {
 			fmt.Println("Decoded object is not a *v1.Pod")
 		}

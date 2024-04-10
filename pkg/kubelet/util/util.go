@@ -53,9 +53,11 @@ func GetNodenameForKernel(hostname string, hostDomainName string, setHostnameAsF
 // It returns true if the container is valid, else returns false.
 func GetContainerByIndex(containers []v1.Container, statuses []v1.ContainerStatus, idx int) (v1.Container, bool) {
 	if idx < 0 || idx >= len(containers) || idx >= len(statuses) {
+		fmt.Errorf("first one")
 		return v1.Container{}, false
 	}
 	if statuses[idx].Name != containers[idx].Name {
+		fmt.Errorf("second one")
 		return v1.Container{}, false
 	}
 	return containers[idx], true

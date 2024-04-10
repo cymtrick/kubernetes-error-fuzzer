@@ -1513,20 +1513,20 @@ func TestDeleteOrphanedMirrorPods(t *testing.T) {
 	}
 }
 
-func TestNetworkErrorsWithoutHostNetwork(t *testing.T) {
+func TestNetworkErrorsWithoutHostNetwork(t *testing.T, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
 
 	(*kubelet.GetRuntimeState()).SetNetworkState(fmt.Errorf("simulated network error"))
 
-	pod := podWithUIDNameNsSpec("12345678", "hostnetwork", "new", v1.PodSpec{
-		HostNetwork: false,
+	// pod := podWithUIDNameNsSpec("12345678", "hostnetwork", "new", v1.PodSpec{
+	// 	HostNetwork: false,
 
-		Containers: []v1.Container{
-			{Name: "foo"},
-		},
-	})
+	// 	Containers: []v1.Container{
+	// 		{Name: "foo"},
+	// 	},
+	// })
 
 	(*kubelet.GetPodManager()).SetPods([]*v1.Pod{pod})
 	isTerminal, err := kubelet.SyncPod(context.Background(), kubetypes.SyncPodUpdate, pod, nil, &kubecontainer.PodStatus{})
@@ -1535,7 +1535,7 @@ func TestNetworkErrorsWithoutHostNetwork(t *testing.T) {
 		t.Fatalf("pod should not be terminal: %#v", pod)
 	}
 
-	pod.Annotations[kubetypes.ConfigSourceAnnotationKey] = kubetypes.FileSource
+	// pod.Annotations[kubetypes.ConfigSourceAnnotationKey] = kubetypes.FileSource
 	pod.Spec.HostNetwork = true
 	isTerminal, err = kubelet.SyncPod(context.Background(), kubetypes.SyncPodUpdate, pod, nil, &kubecontainer.PodStatus{})
 	assert.NoError(t, err, "expected pod with hostNetwork=true to succeed when network in error")
@@ -1737,35 +1737,19 @@ func TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t *testing.T, pod *v1.Po
 	assert.NotNil(t, status.ContainerStatuses)
 }
 
-func TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t *testing.T) {
+// TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed checking fuzz
+func TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t *testing.T, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	fakeRuntime := testKubelet.fakeRuntime
 
 	kubelet := testKubelet.kubelet
 
-	now := metav1.Now()
-	startTime := metav1.NewTime(now.Time.Add(-1 * time.Minute))
-	exceededActiveDeadlineSeconds := int64(300)
+	// now := metav1.Now()
+	// startTime := metav1.NewTime(now.Time.Add(-1 * time.Minute))
+	// exceededActiveDeadlineSeconds := int64(300)
 
-	pods := []*v1.Pod{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				UID:       "12345678",
-				Name:      "bar",
-				Namespace: "new",
-			},
-			Spec: v1.PodSpec{
-				Containers: []v1.Container{
-					{Name: "foo"},
-				},
-				ActiveDeadlineSeconds: &exceededActiveDeadlineSeconds,
-			},
-			Status: v1.PodStatus{
-				StartTime: &startTime,
-			},
-		},
-	}
+	pods := []*v1.Pod{pod}
 
 	fakeRuntime.PodList = []*containertest.FakePod{
 		{Pod: &kubecontainer.Pod{
@@ -1857,7 +1841,7 @@ func TestDoesNotDeletePodDirsForTerminatedPods(t *testing.T) {
 	syncAndVerifyPodDir(t, testKubelet, pods, pods, true)
 }
 
-func TestDoesNotDeletePodDirsIfContainerIsRunning(t *testing.T) {
+func TestDoesNotDeletePodDirsIfContainerIsRunning(t *testing.T, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	runningPod := &kubecontainer.Pod{
@@ -1865,26 +1849,26 @@ func TestDoesNotDeletePodDirsIfContainerIsRunning(t *testing.T) {
 		Name:      "pod1",
 		Namespace: "ns",
 	}
-	apiPod := podWithUIDNameNs(runningPod.ID, runningPod.Name, runningPod.Namespace)
+	// apiPod := podWithUIDNameNs(runningPod.ID, runningPod.Name, runningPod.Namespace)
 
 	// Sync once to create pod directory; confirm that the pod directory has
 	// already been created.
-	pods := []*v1.Pod{apiPod}
-	(*testKubelet.kubelet.GetPodWorkers()).(*fakePodWorkers).running = map[types.UID]bool{apiPod.UID: true}
-	syncAndVerifyPodDir(t, testKubelet, pods, []*v1.Pod{apiPod}, true)
+	pods := []*v1.Pod{pod}
+	(*testKubelet.kubelet.GetPodWorkers()).(*fakePodWorkers).running = map[types.UID]bool{pod.UID: true}
+	syncAndVerifyPodDir(t, testKubelet, pods, []*v1.Pod{pod}, true)
 
 	// Pretend the pod is deleted from apiserver, but is still active on the node.
 	// The pod directory should not be removed.
 	pods = []*v1.Pod{}
 	testKubelet.fakeRuntime.PodList = []*containertest.FakePod{{Pod: runningPod, NetnsPath: ""}}
-	syncAndVerifyPodDir(t, testKubelet, pods, []*v1.Pod{apiPod}, true)
+	syncAndVerifyPodDir(t, testKubelet, pods, []*v1.Pod{pod}, true)
 
 	// The pod is deleted and also not active on the node. The pod directory
 	// should be removed.
 	pods = []*v1.Pod{}
 	testKubelet.fakeRuntime.PodList = []*containertest.FakePod{}
 	(*testKubelet.kubelet.GetPodWorkers()).(*fakePodWorkers).running = nil
-	syncAndVerifyPodDir(t, testKubelet, pods, []*v1.Pod{apiPod}, false)
+	syncAndVerifyPodDir(t, testKubelet, pods, []*v1.Pod{pod}, false)
 }
 
 func TestGetPodsToSync(t *testing.T) {
