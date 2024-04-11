@@ -2,7 +2,12 @@ package main
 
 import (
 	"C"
+	"encoding/csv"
 	"fmt"
+	"os"
+	run "runtime"
+	"testing"
+	"time"
 	"unsafe"
 
 	v1 "k8s.io/api/core/v1"
@@ -12,20 +17,86 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/protobuf"
 	mock "k8s.io/kubernetes/pkg/mock"
 )
-import (
-	"testing"
-	"time"
-)
+import "strings"
+
+// ErrorLog
+type ErrorLog struct {
+	Timestamp    string
+	ErrorType    string
+	ErrorMessage string
+	FunctionName string
+	CoverageData string
+}
+
+func logErrorToInfrastructure(errorType string, err interface{}) {
+
+	if errorVal, ok := err.(error); ok {
+		if strings.Contains(errorVal.Error(), "invalid memory address or nil pointer dereference") {
+			fmt.Println("Excluding nil pointer dereference error from logs.")
+			return
+		}
+	}
+	pc, _, _, ok := run.Caller(1)
+	var functionName string
+	if ok {
+		functionName = run.FuncForPC(pc).Name()
+	} else {
+		functionName = "unknown"
+	}
+
+	logEntry := ErrorLog{
+		Timestamp:    time.Now().Format(time.RFC3339),
+		ErrorType:    errorType,
+		ErrorMessage: fmt.Sprintf("%v", err),
+		FunctionName: functionName,
+		CoverageData: "ExampleCoverageData", // Placeholder
+	}
+
+	appendLogEntryToCSV("error_logs.csv", logEntry)
+}
+
+func appendLogEntryToCSV(fileName string, logEntry ErrorLog) {
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Error opening log file:", err)
+		return
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	if err := writer.Write([]string{
+		logEntry.Timestamp,
+		logEntry.ErrorType,
+		logEntry.ErrorMessage,
+		logEntry.FunctionName,
+		logEntry.CoverageData,
+	}); err != nil {
+		fmt.Println("Error writing to log file:", err)
+	}
+}
 
 // FuzzUnknownObjectMutator is the exported function for fuzzing unknown object mutator.
 //
 //export FuzzUnknownObjectMutator
 func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		fmt.Println("Recovered from panic in FuzzUnknownObjectMutator:", r)
-	// 	}
-	// }()
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
 	dataSlice := C.GoBytes(dataPtr, C.int(dataSize))
 	t := new(testing.T)
 	now := metav1.Now()
@@ -84,13 +155,16 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 		switch {
 		case err == nil && test.errFn != nil:
 			t.Errorf("%d: failed: %v", i, err)
+			logErrorToInfrastructure("panic", err)
 			continue
 		case err != nil && test.errFn == nil:
 			t.Errorf("%d: failed: %v", i, err)
+			logErrorToInfrastructure("panic", err)
 			continue
 		case err != nil:
 			if !test.errFn(err) {
 				t.Errorf("%d: failed: %v", i, err)
+				logErrorToInfrastructure("panic", err)
 			}
 			if obj != nil {
 				t.Errorf("%d: should not have returned an object", i)
@@ -100,7 +174,7 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 		fmt.Printf("Received data in Go: %v\n", obj)
 		if pod, ok := obj.(*v1.Pod); ok {
 			// mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
-
+			fmt.Printf("Pod decode successful")
 			// err := mock.TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t, pod)()
 			mock.TestDoesNotDeletePodDirsIfContainerIsRunning(t, pod)
 
