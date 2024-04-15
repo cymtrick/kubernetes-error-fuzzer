@@ -1,0 +1,338 @@
+[
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:302:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:308:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:313:3"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:372:15"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:375:15"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:380:15"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:397:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:403:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:433:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:483:5"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:495:4"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:586:16"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:632:15"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:752:3"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:766:15"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:773:16"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:778:17"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:803:16"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:806:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:810:3"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1742:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1747:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1750:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1753:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1756:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1759:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1762:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1766:11"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1772:4"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1776:4"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1785:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1790:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1793:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1796:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1799:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1802:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1805:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1809:11"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1815:4"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1819:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:1831:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:1859:5"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:1863:5"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1897:11"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:1912:11"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:1926:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:1937:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:1943:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:1968:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2011:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2021:3"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2217:15"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2223:14"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2231:17"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2274:5"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2291:20"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2304:5"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2309:6"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2311:6"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2324:6"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2333:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2341:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2388:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2453:3"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2479:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2680:10"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2685:10"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2757:2"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2781:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2846:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2873:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2875:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2936:5"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:2940:5"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:2940:17"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:3026:6"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:3209:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:3285:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:3293:4"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:3329:3"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet.go:3333:3"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:3345:35"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:3355:35"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet.go:3456:10"
+    }
+]
