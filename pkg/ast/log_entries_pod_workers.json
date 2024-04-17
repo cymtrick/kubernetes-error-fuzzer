@@ -1,0 +1,255 @@
+[
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:843:5",
+        "errorString": "Pod update is ignored, runtime pods can only be killed%!(EXTRA string=\"pod\", string=\u0026{0xc00010c648 38466 [0xc00010c660 0xc00010c678] 0 38504}, string=\"podUID\", string=\u0026{runningPod ID}, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:851:4",
+        "errorString": "Pod update included RunningPod which is only valid when Pod is not specified%!(EXTRA string=\"pod\", string=\u0026{0xc00010c7c8 38902 [ns name] 0 38911}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:865:3",
+        "errorString": "Pod is being synced for the first time%!(EXTRA string=\"pod\", string=\u0026{0xc00010c960 39366 [ns name] 0 39375}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:930:4",
+        "errorString": "Pod is terminating but has been requested to restart with same UID, will be reconciled later%!(EXTRA string=\"pod\", string=\u0026{0xc00010cd20 43107 [ns name] 0 43116}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:937:3",
+        "errorString": "Pod is finished processing, no further updates%!(EXTRA string=\"pod\", string=\u0026{0xc00010cd98 43408 [ns name] 0 43417}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:946:4",
+        "errorString": "Pod is orphaned and must be torn down%!(EXTRA string=\"pod\", string=\u0026{0xc00010ce10 43699 [ns name] 0 43708}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:951:4",
+        "errorString": "Pod is marked for graceful deletion, begin teardown%!(EXTRA string=\"pod\", string=\u0026{0xc00010ceb8 43970 [ns name] 0 43979}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:956:4",
+        "errorString": "Pod is in a terminal phase (success/failed), begin teardown%!(EXTRA string=\"pod\", string=\u0026{0xc00010cfd8 44290 [ns name] 0 44299}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:961:5",
+        "errorString": "Pod is being evicted by the kubelet, begin teardown%!(EXTRA string=\"pod\", string=\u0026{0xc00010d0c8 44622 [ns name] 0 44631}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:964:5",
+        "errorString": "Pod is being removed by the kubelet, begin teardown%!(EXTRA string=\"pod\", string=\u0026{0xc00010d140 44812 [ns name] 0 44821}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:979:4",
+        "errorString": "Pod is waiting for termination, ignoring runtime-only kill until after pod worker is fully terminated%!(EXTRA string=\"pod\", string=\u0026{0xc00010d1d0 45502 [ns name] 0 45511}, string=\"podUID\", string=uid, string=\"updateType\", string=\u0026{options UpdateType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1046:10",
+        "errorString": "Pod worker has stopped%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1060:2",
+        "errorString": "Notifying pod of pending update%!(EXTRA string=\"pod\", string=\u0026{0xc00010d6f8 48249 [ns name] 0 48258}, string=\"podUID\", string=uid, string=\"workType\", string=\u0026{0xc00010d710 48303 [] 0 48304})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1067:3",
+        "errorString": "Cancelling current pod sync%!(EXTRA string=\"pod\", string=\u0026{0xc00010d788 48507 [ns name] 0 48516}, string=\"podUID\", string=uid, string=\"workType\", string=\u0026{0xc00010d7a0 48561 [] 0 48562})"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/pod_workers.go:1117:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1172:3",
+        "errorString": "Pod worker is complete but did not have terminatingAt set, likely programmer error%!(EXTRA string=\"pod\", string=\u0026{0xc00010de30 52876 [pod] 0 52880}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1175:3",
+        "errorString": "Pod worker is complete and had terminatedAt set, likely programmer error%!(EXTRA string=\"pod\", string=\u0026{0xc00010dec0 53051 [pod] 0 53055}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1203:3",
+        "errorString": "Pod worker no longer has status, worker should exit%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1208:3",
+        "errorString": "Pod should be marked as working by the pod worker, programmer error%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1214:3",
+        "errorString": "Pod worker received no pending work, programmer error?%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1252:3",
+        "errorString": "Running pod cannot start ever, programmer error%!(EXTRA string=\"pod\", string=\u0026{0xc000140498 56544 [0xc0001404c8] 0 56563}, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1265:3",
+        "errorString": "Pod cannot start ever%!(EXTRA string=\"pod\", string=\u0026{0xc000140678 57073 [0xc0001406a8] 0 57092}, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1271:3",
+        "errorString": "Pod cannot start yet%!(EXTRA string=\"pod\", string=\u0026{0xc000140750 57438 [0xc000140780] 0 57457}, string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1327:3",
+        "errorString": "Processing pod event%!(EXTRA string=\"pod\", string=podRef, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1391:4",
+        "errorString": "Sync exited with context cancellation error%!(EXTRA string=\"pod\", string=podRef, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/pod_workers.go:1395:4"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1403:4",
+        "errorString": "Processing pod event done%!(EXTRA string=\"pod\", string=podRef, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1413:5",
+        "errorString": "Processing pod event done%!(EXTRA string=\"pod\", string=podRef, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1422:4",
+        "errorString": "Pod is terminal%!(EXTRA string=\"pod\", string=podRef, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1432:3",
+        "errorString": "Processing pod event done%!(EXTRA string=\"pod\", string=podRef, string=\"podUID\", string=podUID, string=\"updateType\", string=\u0026{update WorkType})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1449:3",
+        "errorString": "Pod worker has observed request to terminate%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1467:2",
+        "errorString": "Pod indicated lifecycle completed naturally and should now terminate%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1471:3",
+        "errorString": "Pod had no status in completeSync, programmer error?%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1479:3",
+        "errorString": "Pod worker attempted to set terminatingAt twice, likely programmer error%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1496:2",
+        "errorString": "Pod terminated all containers successfully%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1505:3",
+        "errorString": "Pod worker was terminated but did not have terminatingAt set, likely programmer error%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1527:2",
+        "errorString": "Pod terminated all orphaned containers successfully and worker can now stop%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1536:3",
+        "errorString": "Pod worker was terminated but did not have terminatingAt set, likely programmer error%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1557:2",
+        "errorString": "Pod is complete and the worker can now stop%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1566:3",
+        "errorString": "Pod worker is complete but did not have terminatingAt set, likely programmer error%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1569:3",
+        "errorString": "Pod worker is complete but did not have terminatedAt set, likely programmer error%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1605:5",
+        "errorString": "Requeueing pod due to pending update%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1607:5",
+        "errorString": "Pending update already queued%!(EXTRA string=\"podUID\", string=podUID)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1690:4",
+        "errorString": "Pod worker has been requested for removal but is still not fully terminated%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1704:4",
+        "errorString": "Pod is orphaned and has not been started%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1716:4",
+        "errorString": "Pod is orphaned and still running, began terminating%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1723:4",
+        "errorString": "Pod is orphaned and still terminating, notified the pod worker%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1729:3",
+        "errorString": "Pod has been terminated but another pod with the same UID was created, remove history to allow restart%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/pod_workers.go:1731:3",
+        "errorString": "Pod has been terminated and is no longer known to the kubelet, remove all history%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/pod_workers.go:1782:11",
+        "errorString": "timeout waiting to kill pod"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/pod_workers.go:1826:11",
+        "errorString": "timeout waiting to kill pod"
+    }
+]

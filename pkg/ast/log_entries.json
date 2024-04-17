@@ -22,7 +22,7 @@
     {
         "functionName": "Errorf",
         "position": "../kubelet/kubelet.go:375:15",
-        "errorString": "invalid sync frequency %!d(string=\u0026{0xc000010ee8 Duration})"
+        "errorString": "invalid sync frequency %!d(string=\u0026{0xc0000d8ed0 Duration})"
     },
     {
         "functionName": "Errorf",
@@ -43,6 +43,11 @@
         "functionName": "InfoS",
         "position": "../kubelet/kubelet.go:433:3",
         "errorString": "ImageMaximumGCAge flag enabled, but corresponding feature gate is not enabled. Ignoring flag."
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:480:5",
+        "errorString": "Failed to create an oomWatcher (running in UserNS, ignoring)%!(EXTRA string=\"err\", string=err)"
     },
     {
         "functionName": "ErrorS",
@@ -202,12 +207,27 @@
         "position": "../kubelet/kubelet.go:1831:4"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1841:4",
+        "errorString": "Container garbage collection succeeded"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1849:3",
+        "errorString": "ImageGCHighThresholdPercent is set 100 and ImageMaximumGCAge is 0, Disable image GC"
+    },
+    {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:1859:5"
     },
     {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:1863:5"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1873:4",
+        "errorString": "Image garbage collection succeeded"
     },
     {
         "functionName": "Errorf",
@@ -232,6 +252,11 @@
         "position": "../kubelet/kubelet.go:1943:3"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:1962:2",
+        "errorString": "Starting plugin manager"
+    },
+    {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:1968:3"
     },
@@ -243,6 +268,26 @@
     {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:2021:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2127:2",
+        "errorString": "SyncPod enter%!(EXTRA string=\"pod\", string=\u0026{0xc00018ec00 84070 [pod] 0 84074}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2129:3",
+        "errorString": "SyncPod exit%!(EXTRA string=\"pod\", string=\u0026{0xc00018ec60 84162 [pod] 0 84166}, string=\"podUID\", string=\u0026{pod UID}, string=\"isTerminal\", string=isTerminal)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2148:4",
+        "errorString": "First seen time not recorded for pod%!(EXTRA string=\"podUID\", string=\u0026{pod UID}, string=\"pod\", string=\u0026{0xc00018ede0 85053 [pod] 0 85057})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2211:3",
+        "errorString": "Pod is not runnable and must have running containers stopped%!(EXTRA string=\"pod\", string=\u0026{0xc00018f350 87595 [pod] 0 87599}, string=\"podUID\", string=\u0026{pod UID}, string=\"message\", string=\u0026{runnable Message})"
     },
     {
         "functionName": "Errorf",
@@ -264,6 +309,11 @@
         "position": "../kubelet/kubelet.go:2274:5"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2287:6",
+        "errorString": "Failed to update QoS cgroups while syncing pod%!(EXTRA string=\"pod\", string=\u0026{0xc00018f8c0 90942 [pod] 0 90946}, string=\"err\", string=err)"
+    },
+    {
         "functionName": "Errorf",
         "position": "../kubelet/kubelet.go:2291:20",
         "errorString": "failed to ensure that the pod: \u0026{pod UID} cgroups exist and are correctly applied: err"
@@ -271,16 +321,26 @@
     {
         "functionName": "InfoS",
         "position": "../kubelet/kubelet.go:2304:5",
-        "errorString": "Trying to delete pod%!(EXTRA string=\"pod\", string=\u0026{0xc0001c59f8 91705 [pod] 0 91709}, string=\"podUID\", string=\u0026{0xc0001c5a10 UID})"
+        "errorString": "Trying to delete pod%!(EXTRA string=\"pod\", string=\u0026{0xc00018f9e0 91705 [pod] 0 91709}, string=\"podUID\", string=\u0026{0xc00018f9f8 UID})"
     },
     {
         "functionName": "InfoS",
         "position": "../kubelet/kubelet.go:2309:6",
-        "errorString": "Deleted mirror pod because it is outdated%!(EXTRA string=\"pod\", string=\u0026{0xc0001c5ad0 92007 [mirrorPod] 0 92017})"
+        "errorString": "Deleted mirror pod because it is outdated%!(EXTRA string=\"pod\", string=\u0026{0xc00018fab8 92007 [mirrorPod] 0 92017})"
     },
     {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:2311:6"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2320:5",
+        "errorString": "No need to create a mirror pod, since node has been removed from the cluster%!(EXTRA string=\"node\", string=\u0026{0xc00018fbc0 92540 [0xc0001a16c0 0xc0001a4840] 0 92564})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2322:5",
+        "errorString": "Creating a mirror pod for static pod%!(EXTRA string=\"pod\", string=\u0026{0xc00018fc20 92655 [pod] 0 92659})"
     },
     {
         "functionName": "ErrorS",
@@ -299,13 +359,98 @@
         "position": "../kubelet/kubelet.go:2388:4"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2415:2",
+        "errorString": "SyncTerminatingPod enter%!(EXTRA string=\"pod\", string=\u0026{0xc0001ac450 97395 [pod] 0 97399}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2416:8",
+        "errorString": "SyncTerminatingPod exit%!(EXTRA string=\"pod\", string=\u0026{0xc0001ac4b0 97487 [pod] 0 97491}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2425:3",
+        "errorString": "Pod terminating with grace period%!(EXTRA string=\"pod\", string=\u0026{0xc0001ac558 97782 [pod] 0 97786}, string=\"podUID\", string=\u0026{pod UID}, string=\"gracePeriod\", string=\u0026{97823 gracePeriod})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2427:3",
+        "errorString": "Pod terminating with grace period%!(EXTRA string=\"pod\", string=\u0026{0xc0001ac5d0 97918 [pod] 0 97922}, string=\"podUID\", string=\u0026{pod UID}, string=\"gracePeriod\", string=nil)"
+    },
+    {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:2453:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2476:3",
+        "errorString": "Post-termination container state%!(EXTRA string=\"pod\", string=\u0026{0xc0001ac9f0 100200 [pod] 0 100204}, string=\"podUID\", string=\u0026{pod UID}, string=\"containers\", string=containers)"
     },
     {
         "functionName": "Errorf",
         "position": "../kubelet/kubelet.go:2479:10",
         "errorString": "detected running containers after a successful KillPod, CRI violation: runningContainers"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2499:2",
+        "errorString": "Pod termination stopped all running containers%!(EXTRA string=\"pod\", string=\u0026{0xc0001acb10 101385 [pod] 0 101389}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2516:2",
+        "errorString": "SyncTerminatingRuntimePod enter%!(EXTRA string=\"pod\", string=\u0026{0xc0001acc30 102432 [pod] 0 102436}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2517:8",
+        "errorString": "SyncTerminatingRuntimePod exit%!(EXTRA string=\"pod\", string=\u0026{0xc0001acc90 102531 [pod] 0 102535}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2520:2",
+        "errorString": "Orphaned running pod terminating without grace period%!(EXTRA string=\"pod\", string=\u0026{0xc0001accf0 102733 [pod] 0 102737}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2529:2",
+        "errorString": "Pod termination stopped all running orphaned containers%!(EXTRA string=\"pod\", string=\u0026{0xc0001acdf8 103268 [pod] 0 103272}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2550:2",
+        "errorString": "SyncTerminatedPod enter%!(EXTRA string=\"pod\", string=\u0026{0xc0001ad098 104479 [pod] 0 104483}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2551:8",
+        "errorString": "SyncTerminatedPod exit%!(EXTRA string=\"pod\", string=\u0026{0xc0001ad0f8 104570 [pod] 0 104574}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2564:2",
+        "errorString": "Pod termination unmounted volumes%!(EXTRA string=\"pod\", string=\u0026{0xc0001ad1d0 105140 [pod] 0 105144}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2572:5",
+        "errorString": "Pod is terminated, but some volumes have not been cleaned up%!(EXTRA string=\"pod\", string=\u0026{0xc0001ad2f0 105676 [pod] 0 105680}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2578:3",
+        "errorString": "Pod termination cleaned up volume paths%!(EXTRA string=\"pod\", string=\u0026{0xc0001ad350 105850 [pod] 0 105854}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2600:3",
+        "errorString": "Pod termination removed cgroups%!(EXTRA string=\"pod\", string=\u0026{0xc0001ad4b8 106680 [pod] 0 106684}, string=\"podUID\", string=\u0026{pod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2607:2",
+        "errorString": "Pod is terminated and will need no more status updates%!(EXTRA string=\"pod\", string=\u0026{0xc0001ad590 106903 [pod] 0 106907}, string=\"podUID\", string=\u0026{pod UID})"
     },
     {
         "functionName": "Errorf",
@@ -316,6 +461,11 @@
         "functionName": "Errorf",
         "position": "../kubelet/kubelet.go:2685:10",
         "errorString": "skipping delete because sources aren't ready yet"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2687:2",
+        "errorString": "Pod has been deleted and must be killed%!(EXTRA string=\"pod\", string=\u0026{0xc0001ada28 109635 [pod] 0 109639}, string=\"podUID\", string=\u0026{pod UID})"
     },
     {
         "functionName": "InfoS",
@@ -331,12 +481,62 @@
         "position": "../kubelet/kubelet.go:2846:4"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2852:4",
+        "errorString": "SyncLoop ADD%!(EXTRA string=\"source\", string=\u0026{u Source}, string=\"pods\", string=\u0026{0xc0001d44b0 116363 [0xc0001d44c8] 0 116370})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2859:4",
+        "errorString": "SyncLoop UPDATE%!(EXTRA string=\"source\", string=\u0026{u Source}, string=\"pods\", string=\u0026{0xc0001d4570 116756 [0xc0001d4588] 0 116763})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2862:4",
+        "errorString": "SyncLoop REMOVE%!(EXTRA string=\"source\", string=\u0026{u Source}, string=\"pods\", string=\u0026{0xc0001d4630 116907 [0xc0001d4648] 0 116914})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2865:4",
+        "errorString": "SyncLoop RECONCILE%!(EXTRA string=\"source\", string=\u0026{u Source}, string=\"pods\", string=\u0026{0xc0001d46f0 117064 [0xc0001d4708] 0 117071})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2868:4",
+        "errorString": "SyncLoop DELETE%!(EXTRA string=\"source\", string=\u0026{u Source}, string=\"pods\", string=\u0026{0xc0001d47b0 117217 [0xc0001d47c8] 0 117224})"
+    },
+    {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:2873:4"
     },
     {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:2875:4"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2884:5",
+        "errorString": "SyncLoop (PLEG): event for pod%!(EXTRA string=\"pod\", string=\u0026{0xc0001d4930 117793 [pod] 0 117797}, string=\"event\", string=e)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2888:5",
+        "errorString": "SyncLoop (PLEG): pod does not exist, ignore irrelevant event%!(EXTRA string=\"event\", string=e)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2903:3",
+        "errorString": "SyncLoop (SYNC) pods%!(EXTRA string=\"total\", string=\u0026{len 118346 [podsToSync] 0 118357}, string=\"pods\", string=\u0026{0xc0001d4a98 118382 [podsToSync] 0 118393})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2931:4",
+        "errorString": "SyncLoop (housekeeping, skipped): sources aren't ready yet"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2934:4",
+        "errorString": "SyncLoop (housekeeping)"
     },
     {
         "functionName": "ErrorS",
@@ -352,12 +552,82 @@
         "errorString": "housekeeping took too long"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2942:4",
+        "errorString": "SyncLoop (housekeeping) end%!(EXTRA string=\"duration\", string=\u0026{0xc0001d4e28 120033 [0xc0001d4e40] 0 120050})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2962:3",
+        "errorString": "SyncLoop (probe): ignore irrelevant update%!(EXTRA string=\"probe\", string=probe, string=\"status\", string=status, string=\"update\", string=update)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2965:2",
+        "errorString": "SyncLoop (probe)%!(EXTRA string=\"probe\", string=probe, string=\"status\", string=status, string=\"pod\", string=\u0026{0xc0001d5038 121153 [pod] 0 121157})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:2989:5",
+        "errorString": "Unable to find pod for mirror pod, skipping%!(EXTRA string=\"mirrorPod\", string=\u0026{0xc0001d52d8 122152 [mirrorPod] 0 122162}, string=\"mirrorPodUID\", string=\u0026{mirrorPod UID})"
+    },
+    {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:3026:6"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3071:5",
+        "errorString": "Unable to find pod for mirror pod, skipping%!(EXTRA string=\"mirrorPod\", string=\u0026{0xc0001d58f0 125362 [mirrorPod] 0 125372}, string=\"mirrorPodUID\", string=\u0026{mirrorPod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3095:5",
+        "errorString": "Unable to find pod for mirror pod, skipping%!(EXTRA string=\"mirrorPod\", string=\u0026{0xc0001d5ab8 126038 [mirrorPod] 0 126048}, string=\"mirrorPodUID\", string=\u0026{mirrorPod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3110:4",
+        "errorString": "Failed to delete pod%!(EXTRA string=\"pod\", string=\u0026{0xc0001d5ba8 126487 [pod] 0 126491}, string=\"err\", string=err)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3128:5",
+        "errorString": "Unable to find pod for mirror pod, skipping%!(EXTRA string=\"mirrorPod\", string=\u0026{0xc0001d5cf8 127152 [mirrorPod] 0 127162}, string=\"mirrorPodUID\", string=\u0026{mirrorPod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3172:5",
+        "errorString": "Unable to find pod for mirror pod, skipping%!(EXTRA string=\"mirrorPod\", string=\u0026{0xc0001d5f50 129097 [mirrorPod] 0 129107}, string=\"mirrorPodUID\", string=\u0026{mirrorPod UID})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3178:4",
+        "errorString": "Programmer error, HandlePodSyncs does not expect to receive mirror pods%!(EXTRA string=\"podUID\", string=\u0026{pod UID}, string=\"mirrorPodUID\", string=\u0026{mirrorPod UID})"
+    },
+    {
         "functionName": "ErrorS",
         "position": "../kubelet/kubelet.go:3209:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3218:3",
+        "errorString": "Resize is not feasible as request exceeds allocatable node resources%!(EXTRA string=\"pod\", string=\u0026{podCopy Name})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3233:3",
+        "errorString": "Resize cannot be accommodated%!(EXTRA string=\"pod\", string=\u0026{podCopy Name}, string=\"reason\", string=failReason, string=\"message\", string=failMessage)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3259:4",
+        "errorString": "ContainerStatus not found%!(EXTRA string=\"pod\", string=\u0026{pod Name}, string=\"container\", string=\u0026{container Name})"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3263:4",
+        "errorString": "ContainerStatus.AllocatedResources length mismatch%!(EXTRA string=\"pod\", string=\u0026{pod Name}, string=\"container\", string=\u0026{container Name})"
     },
     {
         "functionName": "ErrorS",
@@ -376,6 +646,11 @@
         "position": "../kubelet/kubelet.go:3333:3"
     },
     {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3337:2",
+        "errorString": "Container runtime status%!(EXTRA string=\"status\", string=s)"
+    },
+    {
         "functionName": "Errorf",
         "position": "../kubelet/kubelet.go:3345:35",
         "errorString": "container runtime network not ready: networkReady"
@@ -384,6 +659,11 @@
         "functionName": "Errorf",
         "position": "../kubelet/kubelet.go:3355:35",
         "errorString": "container runtime not ready: runtimeReady"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet.go:3394:3",
+        "errorString": "Failed to get local endpoint for PodResources endpoint%!(EXTRA string=\"err\", string=err)"
     },
     {
         "functionName": "Errorf",

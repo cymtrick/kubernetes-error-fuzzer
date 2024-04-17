@@ -33,38 +33,31 @@ func main() {
 			return true
 		}
 
-		selExpr, ok := callExpr.Fun.(*ast.SelectorExpr)
-		if !ok {
-			return true
-		}
-
-		if ident, ok := selExpr.X.(*ast.Ident); ok {
-			if (ident.Name == "fmt" || ident.Name == "klog") &&
-				(strings.HasSuffix(selExpr.Sel.Name, "Errorf") ||
-					strings.HasSuffix(selExpr.Sel.Name, "ErrorS") ||
-					strings.HasSuffix(selExpr.Sel.Name, "InfoS")) {
-				position := fset.Position(callExpr.Pos()).String()
-				var errorString string
-				if len(callExpr.Args) > 0 {
-					formatArg, ok := callExpr.Args[0].(*ast.BasicLit)
-					if ok && formatArg.Kind == token.STRING {
-						formatStr := strings.Trim(formatArg.Value, "\"")
-						args := make([]interface{}, len(callExpr.Args)-1)
-						for i, arg := range callExpr.Args[1:] {
-							args[i] = argToString(arg)
-						}
-						errorString = fmt.Sprintf(formatStr, args...)
+		// Handle klog.V(level).InfoS(...)
+		if selExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
+			if call, ok := selExpr.X.(*ast.CallExpr); ok {
+				if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+					if ident, ok := sel.X.(*ast.Ident); ok && ident.Name == "klog" && sel.Sel.Name == "V" &&
+						(selExpr.Sel.Name == "InfoS") {
+						processLogEntry(&entries, selExpr.Sel.Name, callExpr, fset)
+						return true
 					}
 				}
-
-				entry := Entry{
-					FunctionName: selExpr.Sel.Name,
-					Position:     position,
-					ErrorString:  errorString,
-				}
-				entries = append(entries, entry)
 			}
 		}
+
+		// Handle fmt.Errorf and klog.ErrorS
+		if selExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
+			if ident, ok := selExpr.X.(*ast.Ident); ok {
+				if (ident.Name == "fmt" || ident.Name == "klog") &&
+					(strings.HasSuffix(selExpr.Sel.Name, "Errorf") ||
+						strings.HasSuffix(selExpr.Sel.Name, "ErrorS") ||
+						strings.HasSuffix(selExpr.Sel.Name, "InfoS")) {
+					processLogEntry(&entries, selExpr.Sel.Name, callExpr, fset)
+				}
+			}
+		}
+
 		return true
 	})
 
@@ -79,6 +72,29 @@ func main() {
 		fmt.Printf("Error writing file: %v\n", err)
 		return
 	}
+}
+
+func processLogEntry(entries *[]Entry, funcName string, callExpr *ast.CallExpr, fset *token.FileSet) {
+	position := fset.Position(callExpr.Pos()).String()
+	var errorString string
+	if len(callExpr.Args) > 0 {
+		formatArg, ok := callExpr.Args[0].(*ast.BasicLit)
+		if ok && formatArg.Kind == token.STRING {
+			formatStr := strings.Trim(formatArg.Value, "\"")
+			args := make([]interface{}, len(callExpr.Args)-1)
+			for i, arg := range callExpr.Args[1:] {
+				args[i] = argToString(arg)
+			}
+			errorString = fmt.Sprintf(formatStr, args...)
+		}
+	}
+
+	entry := Entry{
+		FunctionName: funcName,
+		Position:     position,
+		ErrorString:  errorString,
+	}
+	*entries = append(*entries, entry)
 }
 
 func argToString(arg ast.Expr) string {
