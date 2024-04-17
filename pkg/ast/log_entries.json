@@ -1,39 +1,48 @@
 [
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:302:3"
+        "position": "../kubelet/kubelet.go:302:3",
+        "errorString": "Adding static pod path%!(EXTRA string=\"path\", string=\u0026{kubeCfg StaticPodPath})"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:308:3"
+        "position": "../kubelet/kubelet.go:308:3",
+        "errorString": "Adding pod URL with HTTP header%!(EXTRA string=\"URL\", string=\u0026{kubeCfg StaticPodURL}, string=\"header\", string=manifestURLHeader)"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:313:3"
+        "position": "../kubelet/kubelet.go:313:3",
+        "errorString": "Adding apiserver pod source"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:372:15"
+        "position": "../kubelet/kubelet.go:372:15",
+        "errorString": "invalid root directory \"rootDirectory\""
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:375:15"
+        "position": "../kubelet/kubelet.go:375:15",
+        "errorString": "invalid sync frequency %!d(string=\u0026{0xc000010ee8 Duration})"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:380:15"
+        "position": "../kubelet/kubelet.go:380:15",
+        "errorString": "cloud provider \"cloudProvider\" was specified, but built-in cloud providers are disabled. Please set --cloud-provider=external and migrate to an external cloud provider"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:397:3"
+        "position": "../kubelet/kubelet.go:397:3",
+        "errorString": "Attempting to sync node with API server"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:403:3"
+        "position": "../kubelet/kubelet.go:403:3",
+        "errorString": "Kubelet is running in standalone mode, will skip API server sync"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:433:3"
+        "position": "../kubelet/kubelet.go:433:3",
+        "errorString": "ImageMaximumGCAge flag enabled, but corresponding feature gate is not enabled. Ignoring flag."
     },
     {
         "functionName": "ErrorS",
@@ -41,15 +50,18 @@
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:495:4"
+        "position": "../kubelet/kubelet.go:495:4",
+        "errorString": "Invalid clusterDNS IP%!(EXTRA string=\"IP\", string=ipEntry)"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:586:16"
+        "position": "../kubelet/kubelet.go:586:16",
+        "errorString": "unknown configmap and secret manager mode: \u0026{kubeCfg ConfigMapAndSecretChangeDetectionStrategy}"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:632:15"
+        "position": "../kubelet/kubelet.go:632:15",
+        "errorString": "failed to initialize container log manager: err"
     },
     {
         "functionName": "ErrorS",
@@ -57,107 +69,133 @@
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:766:15"
+        "position": "../kubelet/kubelet.go:766:15",
+        "errorString": "failed to initialize image manager: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:773:16"
+        "position": "../kubelet/kubelet.go:773:16",
+        "errorString": "failed to initialize certificate manager: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:778:17"
+        "position": "../kubelet/kubelet.go:778:17",
+        "errorString": "no serving certificate available for the kubelet"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:803:16"
+        "position": "../kubelet/kubelet.go:803:16",
+        "errorString": "while starting informer-based ClusterTrustBundle manager: %!w(string=err)"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:806:3"
+        "position": "../kubelet/kubelet.go:806:3",
+        "errorString": "Started ClusterTrustBundle informer"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:810:3"
+        "position": "../kubelet/kubelet.go:810:3",
+        "errorString": "Not starting ClusterTrustBundle informer because we are in static kubelet mode"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1742:10"
+        "position": "../kubelet/kubelet.go:1742:10",
+        "errorString": "rootDirectory not in canonical form: expected cleanedRoot, was \u0026{kl rootDirectory}"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1747:10"
+        "position": "../kubelet/kubelet.go:1747:10",
+        "errorString": "error creating root directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1750:10"
+        "position": "../kubelet/kubelet.go:1750:10",
+        "errorString": "error configuring root directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1753:10"
+        "position": "../kubelet/kubelet.go:1753:10",
+        "errorString": "error creating pods directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1756:10"
+        "position": "../kubelet/kubelet.go:1756:10",
+        "errorString": "error creating plugins directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1759:10"
+        "position": "../kubelet/kubelet.go:1759:10",
+        "errorString": "error creating plugins registry directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1762:10"
+        "position": "../kubelet/kubelet.go:1762:10",
+        "errorString": "error creating podresources directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1766:11"
+        "position": "../kubelet/kubelet.go:1766:11",
+        "errorString": "error creating checkpoint directory: err"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:1772:4"
+        "position": "../kubelet/kubelet.go:1772:4",
+        "errorString": "Unprivileged containerized plugins might not work, could not set selinux context on plugin registration dir%!(EXTRA string=\"path\", string=pluginRegistrationDir, string=\"err\", string=err)"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:1776:4"
+        "position": "../kubelet/kubelet.go:1776:4",
+        "errorString": "Unprivileged containerized plugins might not work, could not set selinux context on plugins dir%!(EXTRA string=\"path\", string=pluginsDir, string=\"err\", string=err)"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1785:10"
+        "position": "../kubelet/kubelet.go:1785:10",
+        "errorString": "rootDirectory not in canonical form: expected cleanedRoot, was \u0026{kl rootDirectory}"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1790:10"
+        "position": "../kubelet/kubelet.go:1790:10",
+        "errorString": "error creating root directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1793:10"
+        "position": "../kubelet/kubelet.go:1793:10",
+        "errorString": "error configuring root directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1796:10"
+        "position": "../kubelet/kubelet.go:1796:10",
+        "errorString": "error creating pods directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1799:10"
+        "position": "../kubelet/kubelet.go:1799:10",
+        "errorString": "error creating plugins directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1802:10"
+        "position": "../kubelet/kubelet.go:1802:10",
+        "errorString": "error creating plugins registry directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1805:10"
+        "position": "../kubelet/kubelet.go:1805:10",
+        "errorString": "error creating podresources directory: err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1809:11"
+        "position": "../kubelet/kubelet.go:1809:11",
+        "errorString": "error creating checkpoint directory: err"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:1815:4"
+        "position": "../kubelet/kubelet.go:1815:4",
+        "errorString": "Unprivileged containerized plugins might not work, could not set selinux context on plugin registration dir%!(EXTRA string=\"path\", string=pluginRegistrationDir, string=\"err\", string=err)"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:1819:4"
+        "position": "../kubelet/kubelet.go:1819:4",
+        "errorString": "Unprivileged containerized plugins might not work, could not set selinux context on plugins dir%!(EXTRA string=\"path\", string=pluginsDir, string=\"err\", string=err)"
     },
     {
         "functionName": "ErrorS",
@@ -173,11 +211,13 @@
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1897:11"
+        "position": "../kubelet/kubelet.go:1897:11",
+        "errorString": "failed to create directory \"ContainerLogsDir\": err"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:1912:11"
+        "position": "../kubelet/kubelet.go:1912:11",
+        "errorString": "failed to start OOM watcher: %!w(string=err)"
     },
     {
         "functionName": "ErrorS",
@@ -197,7 +237,8 @@
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:2011:3"
+        "position": "../kubelet/kubelet.go:2011:3",
+        "errorString": "No API server defined - no node status update will be sent"
     },
     {
         "functionName": "ErrorS",
@@ -205,15 +246,18 @@
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2217:15"
+        "position": "../kubelet/kubelet.go:2217:15",
+        "errorString": "error killing pod: %!w(string=err)"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2223:14"
+        "position": "../kubelet/kubelet.go:2223:14",
+        "errorString": "pod cannot be run: \u0026{runnable Message}"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2231:17"
+        "position": "../kubelet/kubelet.go:2231:17",
+        "errorString": "NetworkNotReadyErrorMsg: err"
     },
     {
         "functionName": "ErrorS",
@@ -221,15 +265,18 @@
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2291:20"
+        "position": "../kubelet/kubelet.go:2291:20",
+        "errorString": "failed to ensure that the pod: \u0026{pod UID} cgroups exist and are correctly applied: err"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:2304:5"
+        "position": "../kubelet/kubelet.go:2304:5",
+        "errorString": "Trying to delete pod%!(EXTRA string=\"pod\", string=\u0026{0xc0001c59f8 91705 [pod] 0 91709}, string=\"podUID\", string=\u0026{0xc0001c5a10 UID})"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:2309:6"
+        "position": "../kubelet/kubelet.go:2309:6",
+        "errorString": "Deleted mirror pod because it is outdated%!(EXTRA string=\"pod\", string=\u0026{0xc0001c5ad0 92007 [mirrorPod] 0 92017})"
     },
     {
         "functionName": "ErrorS",
@@ -257,19 +304,23 @@
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2479:10"
+        "position": "../kubelet/kubelet.go:2479:10",
+        "errorString": "detected running containers after a successful KillPod, CRI violation: runningContainers"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2680:10"
+        "position": "../kubelet/kubelet.go:2680:10",
+        "errorString": "deletePod does not allow nil pod"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2685:10"
+        "position": "../kubelet/kubelet.go:2685:10",
+        "errorString": "skipping delete because sources aren't ready yet"
     },
     {
         "functionName": "InfoS",
-        "position": "../kubelet/kubelet.go:2757:2"
+        "position": "../kubelet/kubelet.go:2757:2",
+        "errorString": "Starting kubelet main sync loop"
     },
     {
         "functionName": "ErrorS",
@@ -297,7 +348,8 @@
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:2940:17"
+        "position": "../kubelet/kubelet.go:2940:17",
+        "errorString": "housekeeping took too long"
     },
     {
         "functionName": "ErrorS",
@@ -325,14 +377,17 @@
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:3345:35"
+        "position": "../kubelet/kubelet.go:3345:35",
+        "errorString": "container runtime network not ready: networkReady"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:3355:35"
+        "position": "../kubelet/kubelet.go:3355:35",
+        "errorString": "container runtime not ready: runtimeReady"
     },
     {
         "functionName": "Errorf",
-        "position": "../kubelet/kubelet.go:3456:10"
+        "position": "../kubelet/kubelet.go:3456:10",
+        "errorString": "container containerName not found"
     }
 ]

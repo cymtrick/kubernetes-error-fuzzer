@@ -29,13 +29,15 @@ type ErrorLog struct {
 }
 
 func logErrorToInfrastructure(errorType string, err interface{}) {
-
 	if errorVal, ok := err.(error); ok {
+		// First check for nil pointer dereference before any other actions
 		if strings.Contains(errorVal.Error(), "invalid memory address or nil pointer dereference") {
 			fmt.Println("Excluding nil pointer dereference error from logs.")
 			return
 		}
 	}
+
+	// Proceed with logging other errors
 	pc, _, _, ok := run.Caller(1)
 	var functionName string
 	if ok {
@@ -90,6 +92,7 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 			} else {
 				errMsg = fmt.Sprint(r)
 			}
+			// Ensure that nil pointer dereference errors are excluded
 			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
 				fmt.Println("Excluding nil pointer dereference error from logs.")
 				return

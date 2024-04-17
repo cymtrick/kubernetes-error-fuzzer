@@ -13,6 +13,7 @@ import (
 type Entry struct {
 	FunctionName string `json:"functionName"`
 	Position     string `json:"position"`
+	ErrorString  string `json:"errorString,omitempty"` // Optional field to include error strings
 }
 
 func main() {
@@ -20,7 +21,8 @@ func main() {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, path, nil, 0)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error parsing file: %v\n", err)
+		return
 	}
 
 	var entries []Entry
@@ -37,26 +39,30 @@ func main() {
 		}
 
 		if ident, ok := selExpr.X.(*ast.Ident); ok {
-			fmt.Println("Found an identifier:", ident.Name)
-			if ident.Name == "klog" {
-				if strings.HasSuffix(selExpr.Sel.Name, "ErrorS") || strings.HasSuffix(selExpr.Sel.Name, "InfoS") {
-					position := fset.Position(callExpr.Pos()).String()
-					entry := Entry{
-						FunctionName: selExpr.Sel.Name,
-						Position:     position,
+			if (ident.Name == "fmt" || ident.Name == "klog") &&
+				(strings.HasSuffix(selExpr.Sel.Name, "Errorf") ||
+					strings.HasSuffix(selExpr.Sel.Name, "ErrorS") ||
+					strings.HasSuffix(selExpr.Sel.Name, "InfoS")) {
+				position := fset.Position(callExpr.Pos()).String()
+				var errorString string
+				if len(callExpr.Args) > 0 {
+					formatArg, ok := callExpr.Args[0].(*ast.BasicLit)
+					if ok && formatArg.Kind == token.STRING {
+						formatStr := strings.Trim(formatArg.Value, "\"")
+						args := make([]interface{}, len(callExpr.Args)-1)
+						for i, arg := range callExpr.Args[1:] {
+							args[i] = argToString(arg)
+						}
+						errorString = fmt.Sprintf(formatStr, args...)
 					}
-					entries = append(entries, entry)
 				}
-			}
-			if ident.Name == "fmt" {
-				if strings.HasSuffix(selExpr.Sel.Name, "Errorf") {
-					position := fset.Position(callExpr.Pos()).String()
-					entry := Entry{
-						FunctionName: selExpr.Sel.Name,
-						Position:     position,
-					}
-					entries = append(entries, entry)
+
+				entry := Entry{
+					FunctionName: selExpr.Sel.Name,
+					Position:     position,
+					ErrorString:  errorString,
 				}
+				entries = append(entries, entry)
 			}
 		}
 		return true
@@ -64,11 +70,24 @@ func main() {
 
 	jsonData, err := json.MarshalIndent(entries, "", "    ")
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error marshalling JSON: %v\n", err)
+		return
 	}
 
 	err = os.WriteFile("log_entries.json", jsonData, 0644)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error writing file: %v\n", err)
+		return
+	}
+}
+
+func argToString(arg ast.Expr) string {
+	switch x := arg.(type) {
+	case *ast.BasicLit:
+		return x.Value
+	case *ast.Ident:
+		return x.Name
+	default:
+		return fmt.Sprintf("%v", arg)
 	}
 }
