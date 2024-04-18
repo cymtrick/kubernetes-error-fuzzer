@@ -17,7 +17,7 @@ type Entry struct {
 }
 
 func main() {
-	path := "../kubelet/kubelet.go"
+	path := "../kubelet/kubelet_volumes.go"
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, path, nil, 0)
 	if err != nil {
@@ -67,7 +67,7 @@ func main() {
 		return
 	}
 
-	err = os.WriteFile("log_entries.json", jsonData, 0644)
+	err = os.WriteFile("log_entries_kubelet_volumes.json", jsonData, 0644)
 	if err != nil {
 		fmt.Printf("Error writing file: %v\n", err)
 		return

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	run "runtime"
-	"testing"
 	"time"
 	"unsafe"
 
@@ -17,7 +16,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/protobuf"
 	mock "k8s.io/kubernetes/pkg/mock"
 )
-import "strings"
+import (
+	"strings"
+	"testing"
+)
 
 // ErrorLog
 type ErrorLog struct {
@@ -79,10 +81,7 @@ func appendLogEntryToCSV(fileName string, logEntry ErrorLog) {
 	}
 }
 
-// FuzzUnknownObjectMutator is the exported function for fuzzing unknown object mutator.
-//
-//export FuzzUnknownObjectMutator
-func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
+func fuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod {
 	defer func() {
 		if r := recover(); r != nil {
 			err, ok := r.(error)
@@ -149,6 +148,7 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 		},
 	}
 	scheme := runtime.NewScheme()
+	returnPod := &v1.Pod{}
 	for i, test := range testCases {
 		scheme.AddKnownTypes(schema.GroupVersion{Version: "v1"}, &v1.Pod{})
 		fmt.Printf("Go bytes in hex format: %x\n", test.data)
@@ -176,16 +176,35 @@ func FuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) {
 		}
 		fmt.Printf("Received data in Go: %v\n", obj)
 		if pod, ok := obj.(*v1.Pod); ok {
-			// mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
-			fmt.Printf("Pod decode successful")
-			// err := mock.TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t, pod)()
-			mock.TestDoesNotDeletePodDirsIfContainerIsRunning(t, pod)
+			returnPod = pod
 
-		} else {
-			fmt.Println("Decoded object is not a *v1.Pod")
 		}
 
 	}
+	return returnPod
+}
+
+//export DoesNotDeletePodDirsIfContainerIsRunning
+func DoesNotDeletePodDirsIfContainerIsRunning(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	pod := fuzzUnknownObjectMutator(dataPtr, dataSize)
+	t := new(testing.T)
+	mock.TestDoesNotDeletePodDirsIfContainerIsRunning(t, pod)
+
+}
+
+//export SyncPodsSetStatusToFailedForPodsThatRunTooLong
+func SyncPodsSetStatusToFailedForPodsThatRunTooLong(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	pod := fuzzUnknownObjectMutator(dataPtr, dataSize)
+	t := new(testing.T)
+	mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
+
+}
+
+//export SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed
+func SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	pod := fuzzUnknownObjectMutator(dataPtr, dataSize)
+	t := new(testing.T)
+	mock.TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t, pod)
 
 }
 

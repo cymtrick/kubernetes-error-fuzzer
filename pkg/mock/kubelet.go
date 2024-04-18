@@ -1856,7 +1856,7 @@ func TestDoesNotDeletePodDirsIfContainerIsRunning(t *testing.T, pod *v1.Pod) {
 	pods := []*v1.Pod{pod}
 	(*testKubelet.kubelet.GetPodWorkers()).(*fakePodWorkers).running = map[types.UID]bool{pod.UID: true}
 	syncAndVerifyPodDir(t, testKubelet, pods, []*v1.Pod{pod}, true)
-
+	fmt.Printf("\n reached the sync block")
 	// Pretend the pod is deleted from apiserver, but is still active on the node.
 	// The pod directory should not be removed.
 	pods = []*v1.Pod{}

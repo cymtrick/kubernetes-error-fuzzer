@@ -1,0 +1,121 @@
+[
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet_volumes.go:89:3"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:93:3",
+        "errorString": "Pod found, but volumes are still mounted on disk%!(EXTRA string=\"podUID\", string=podUID, string=\"paths\", string=volumePaths)"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:106:15",
+        "errorString": "can't use volume plugins for \u0026{0xc0000d64b0 4180 [] 0 4181}: err"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:110:15",
+        "errorString": "failed to instantiate mounter for volume: \u0026{0xc0000d64f8 4390 [] 0 4391} using plugin: \u0026{0xc0000d6510 4414 [] 0 4415} with a root cause: err"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:112:2",
+        "errorString": "Using volume plugin for mount%!(EXTRA string=\"volumePluginName\", string=\u0026{0xc0000d6558 4517 [] 0 4518}, string=\"volumeName\", string=\u0026{0xc0000d6570 4544 [] 0 4545})"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:127:51",
+        "errorString": "orphaned pod \"uid\" found, but error occurred during reading volume dir from disk: err"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:133:53",
+        "errorString": "orphaned pod \"uid\" found, but failed to rmdir() volume at path volumePath: err"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:135:5",
+        "errorString": "Cleaned up orphaned volume from pod%!(EXTRA string=\"podUID\", string=uid, string=\"path\", string=volumePath)"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:143:51",
+        "errorString": "orphaned pod \"uid\" found, but error occurred during reading of volume-subpaths dir from disk: err"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:150:53",
+        "errorString": "orphaned pod \"uid\" found, but failed to rmdir() subpath at path subpathVolumePath: err"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:152:5",
+        "errorString": "Cleaned up orphaned volume subpath from pod%!(EXTRA string=\"podUID\", string=uid, string=\"path\", string=subpathVolumePath)"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:161:51",
+        "errorString": "orphaned pod \"uid\" found, but error occurred when trying to remove the volumes dir: err"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:163:3",
+        "errorString": "Cleaned up orphaned pod volumes dir%!(EXTRA string=\"podUID\", string=uid, string=\"path\", string=podVolDir)"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:202:4",
+        "errorString": "Orphaned pod found, but volumes are not cleaned up%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet_volumes.go:224:4"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:225:54",
+        "errorString": "orphaned pod \"uid\" found, but error occurred during reading the pod dir from disk: err"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:238:12",
+        "errorString": "volumes subdir was found after it was removed"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet_volumes.go:239:5"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet_volumes.go:244:5"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:245:55",
+        "errorString": "orphaned pod \"uid\" found, but error occurred when trying to remove subdir \"podSubdirPath\": err"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:250:3",
+        "errorString": "Orphaned pod found, removing%!(EXTRA string=\"podUID\", string=uid)"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet_volumes.go:253:4"
+    },
+    {
+        "functionName": "Errorf",
+        "position": "../kubelet/kubelet_volumes.go:254:54",
+        "errorString": "orphaned pod \"uid\" found, but error occurred when trying to remove the pod directory: err"
+    },
+    {
+        "functionName": "ErrorS",
+        "position": "../kubelet/kubelet_volumes.go:263:4"
+    },
+    {
+        "functionName": "InfoS",
+        "position": "../kubelet/kubelet_volumes.go:265:5",
+        "errorString": "Orphan pod%!(EXTRA string=\"err\", string=err)"
+    }
+]
