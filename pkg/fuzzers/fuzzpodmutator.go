@@ -32,7 +32,7 @@ type ErrorLog struct {
 
 func logErrorToInfrastructure(errorType string, err interface{}) {
 	if errorVal, ok := err.(error); ok {
-		// First check for nil pointer dereference before any other actions
+
 		if strings.Contains(errorVal.Error(), "invalid memory address or nil pointer dereference") {
 			fmt.Println("Excluding nil pointer dereference error from logs.")
 			return
@@ -81,26 +81,11 @@ func appendLogEntryToCSV(fileName string, logEntry ErrorLog) {
 	}
 }
 
-func fuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod {
-	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			// Ensure that nil pointer dereference errors are excluded
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		}
-	}()
+func fuzzPodObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod {
 	dataSlice := C.GoBytes(dataPtr, C.int(dataSize))
 	t := new(testing.T)
+
+	//valiadtion test for unwrapping the pod object
 	now := metav1.Now()
 	startTime := metav1.NewTime(now.Time.Add(-1 * time.Minute))
 	exceededActiveDeadlineSeconds := int64(30)
@@ -119,12 +104,11 @@ func fuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod
 			StartTime: &startTime,
 		},
 	}
-	obj1wire, err := obj1.Marshal()
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Printf("Go bytes in hex format: %x\n", obj1wire)
+	//validation wrapper ends here
+
+	//dataslice from the protobuf is wrapped around the runtime unknown object
+
 	wire1, err := (&runtime.Unknown{
 		TypeMeta: runtime.TypeMeta{Kind: "Pod", APIVersion: "v1"},
 		Raw:      dataSlice,
@@ -132,9 +116,8 @@ func fuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("Go bytes in hex format: %x\n", dataSlice)
-	wire1 = append([]byte{0x6b, 0x38, 0x73, 0x00}, wire1...)
 
+	wire1 = append([]byte{0x6b, 0x38, 0x73, 0x00}, wire1...)
 	obj1WithKind := obj1.DeepCopyObject()
 	obj1WithKind.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Pod"})
 	testCases := []struct {
@@ -151,7 +134,6 @@ func fuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod
 	returnPod := &v1.Pod{}
 	for i, test := range testCases {
 		scheme.AddKnownTypes(schema.GroupVersion{Version: "v1"}, &v1.Pod{})
-		fmt.Printf("Go bytes in hex format: %x\n", test.data)
 		s := protobuf.NewSerializer(scheme, scheme)
 		obj, err := runtime.Decode(s, test.data)
 
@@ -174,7 +156,6 @@ func fuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod
 			}
 			continue
 		}
-		fmt.Printf("Received data in Go: %v\n", obj)
 		if pod, ok := obj.(*v1.Pod); ok {
 			returnPod = pod
 
@@ -184,9 +165,93 @@ func fuzzUnknownObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod
 	return returnPod
 }
 
+func fuzzNodeObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Node {
+	dataSlice := C.GoBytes(dataPtr, C.int(dataSize))
+	t := new(testing.T)
+
+	//valiadtion test for unwrapping the Node object
+	obj1 := &v1.Node{}
+
+	//validation wrapper ends here
+
+	//dataslice from the protobuf is wrapped around the runtime unknown object
+
+	wire1, err := (&runtime.Unknown{
+		TypeMeta: runtime.TypeMeta{Kind: "Node", APIVersion: "v1"},
+		Raw:      dataSlice,
+	}).Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wire1 = append([]byte{0x6b, 0x38, 0x73, 0x00}, wire1...)
+	obj1WithKind := obj1.DeepCopyObject()
+	obj1WithKind.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Node"})
+	testCases := []struct {
+		obj   runtime.Object
+		data  []byte
+		errFn func(error) bool
+	}{
+		{
+			obj:  obj1WithKind,
+			data: wire1,
+		},
+	}
+	scheme := runtime.NewScheme()
+	returnNode := &v1.Node{}
+	for i, test := range testCases {
+		scheme.AddKnownTypes(schema.GroupVersion{Version: "v1"}, &v1.Node{})
+		s := protobuf.NewSerializer(scheme, scheme)
+		obj, err := runtime.Decode(s, test.data)
+
+		switch {
+		case err == nil && test.errFn != nil:
+			t.Errorf("%d: failed: %v", i, err)
+			logErrorToInfrastructure("panic", err)
+			continue
+		case err != nil && test.errFn == nil:
+			t.Errorf("%d: failed: %v", i, err)
+			logErrorToInfrastructure("panic", err)
+			continue
+		case err != nil:
+			if !test.errFn(err) {
+				t.Errorf("%d: failed: %v", i, err)
+				logErrorToInfrastructure("panic", err)
+			}
+			if obj != nil {
+				t.Errorf("%d: should not have returned an object", i)
+			}
+			continue
+		}
+		if node, ok := obj.(*v1.Node); ok {
+			returnNode = node
+
+		}
+
+	}
+	return returnNode
+}
+
 //export DoesNotDeletePodDirsIfContainerIsRunning
 func DoesNotDeletePodDirsIfContainerIsRunning(dataPtr unsafe.Pointer, dataSize C.size_t) {
-	pod := fuzzUnknownObjectMutator(dataPtr, dataSize)
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
 	mock.TestDoesNotDeletePodDirsIfContainerIsRunning(t, pod)
 
@@ -194,7 +259,24 @@ func DoesNotDeletePodDirsIfContainerIsRunning(dataPtr unsafe.Pointer, dataSize C
 
 //export SyncPodsSetStatusToFailedForPodsThatRunTooLong
 func SyncPodsSetStatusToFailedForPodsThatRunTooLong(dataPtr unsafe.Pointer, dataSize C.size_t) {
-	pod := fuzzUnknownObjectMutator(dataPtr, dataSize)
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
 	mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
 
@@ -202,13 +284,152 @@ func SyncPodsSetStatusToFailedForPodsThatRunTooLong(dataPtr unsafe.Pointer, data
 
 //export SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed
 func SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(dataPtr unsafe.Pointer, dataSize C.size_t) {
-	pod := fuzzUnknownObjectMutator(dataPtr, dataSize)
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
 	mock.TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t, pod)
 
 }
 
+//export TestSyncPodsStartPod
+func TestSyncPodsStartPod(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtr, dataSize)
+	t := new(testing.T)
+	mock.TestSyncPodsStartPod(t, pod)
+
+}
+
+//export TestDispatchWorkOfCompletedPod
+func TestDispatchWorkOfCompletedPod(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtr, dataSize)
+	t := new(testing.T)
+	mock.TestDispatchWorkOfCompletedPod(t, pod)
+}
+
+//export TestDispatchWorkOfActivePod
+func TestDispatchWorkOfActivePod(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtr, dataSize)
+	t := new(testing.T)
+	mock.TestDispatchWorkOfActivePod(t, pod)
+}
+
+//export TestHandlePodRemovesWhenSourcesAreReady
+func TestHandlePodRemovesWhenSourcesAreReady(dataPtr unsafe.Pointer, dataSize C.size_t) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtr, dataSize)
+	t := new(testing.T)
+	mock.TestHandlePodRemovesWhenSourcesAreReady(t, pod)
+}
+
+//export TestHandlePortConflicts
+func TestHandlePortConflicts(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			errMsg := ""
+			if ok {
+				errMsg = err.Error()
+			} else {
+				errMsg = fmt.Sprint(r)
+			}
+			// Ensure that nil pointer dereference errors are excluded
+			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+				fmt.Println("Excluding nil pointer dereference error from logs.")
+				return
+			}
+			logErrorToInfrastructure("panic", errMsg)
+		}
+	}()
+	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+	node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
+	t := new(testing.T)
+	mock.TestHandlePortConflicts(t, node, pod)
+}
+
 func main() {
-	// Keep this running or use a mechanism to keep it alive for fuzzing
+
 	select {}
 }

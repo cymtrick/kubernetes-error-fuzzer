@@ -11,17 +11,17 @@
     {
         "functionName": "Errorf",
         "position": "../kubelet/kubelet_volumes.go:106:15",
-        "errorString": "can't use volume plugins for \u0026{0xc0000d64b0 4180 [] 0 4181}: err"
+        "errorString": "can't use volume plugins for \u0026{0xc0000104c8 4180 [] 0 4181}: err"
     },
     {
         "functionName": "Errorf",
         "position": "../kubelet/kubelet_volumes.go:110:15",
-        "errorString": "failed to instantiate mounter for volume: \u0026{0xc0000d64f8 4390 [] 0 4391} using plugin: \u0026{0xc0000d6510 4414 [] 0 4415} with a root cause: err"
+        "errorString": "failed to instantiate mounter for volume: \u0026{0xc000010510 4390 [] 0 4391} using plugin: \u0026{0xc000010528 4414 [] 0 4415} with a root cause: err"
     },
     {
         "functionName": "InfoS",
         "position": "../kubelet/kubelet_volumes.go:112:2",
-        "errorString": "Using volume plugin for mount%!(EXTRA string=\"volumePluginName\", string=\u0026{0xc0000d6558 4517 [] 0 4518}, string=\"volumeName\", string=\u0026{0xc0000d6570 4544 [] 0 4545})"
+        "errorString": "Using volume plugin for mount%!(EXTRA string=\"volumePluginName\", string=\u0026{0xc000010570 4517 [] 0 4518}, string=\"volumeName\", string=\u0026{0xc000010588 4544 [] 0 4545})"
     },
     {
         "functionName": "Errorf",

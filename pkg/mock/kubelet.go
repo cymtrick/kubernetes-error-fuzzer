@@ -492,37 +492,21 @@ func TestSyncLoopAbort(t *testing.T) {
 	kubelet.SyncLoop(ctx, ch, kubelet)
 }
 
-func TestSyncPodsStartPod(t *testing.T) {
+func TestSyncPodsStartPod(t *testing.T, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kubelet := testKubelet.kubelet
 	fakeRuntime := testKubelet.fakeRuntime
-	pods := []*v1.Pod{
-		podWithUIDNameNsSpec("12345678", "foo", "new", v1.PodSpec{
-			Containers: []v1.Container{
-				{Name: "bar"},
-			},
-		}),
-	}
+	pods := []*v1.Pod{pod}
 	(*kubelet.GetPodManager()).SetPods(pods)
 	kubelet.HandlePodSyncs(pods)
 	fakeRuntime.AssertStartedPods([]string{string(pods[0].UID)})
 }
 
-func TestHandlePodCleanupsPerQOS(t *testing.T, randomStrings []string) {
+func TestHandlePodCleanupsPerQOS(t *testing.T, pod *kubecontainer.Pod) {
 	ctx := context.Background()
-	fmt.Println("randomStrings: ", randomStrings)
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
-
-	pod := &kubecontainer.Pod{
-		ID:        "12345678",
-		Name:      randomStrings[0],
-		Namespace: randomStrings[1],
-		Containers: []*kubecontainer.Container{
-			{Name: randomStrings[2]},
-		},
-	}
 
 	fakeRuntime := testKubelet.fakeRuntime
 	fakeContainerManager := testKubelet.fakeContainerManager
@@ -575,7 +559,7 @@ func TestHandlePodCleanupsPerQOS(t *testing.T, randomStrings []string) {
 	assert.True(t, destroyCount >= 1, "Expect 1 or more destroys")
 }
 
-func TestDispatchWorkOfCompletedPod(t *testing.T) {
+func TestDispatchWorkOfCompletedPod(t *testing.T, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
@@ -588,62 +572,8 @@ func TestDispatchWorkOfCompletedPod(t *testing.T) {
 		cache: *kl.GetPodCache(),
 		t:     t,
 	}
-	now := metav1.NewTime(time.Now())
 	pods := []*v1.Pod{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				UID:         "1",
-				Name:        "completed-pod1",
-				Namespace:   "ns",
-				Annotations: make(map[string]string),
-			},
-			Status: v1.PodStatus{
-				Phase: v1.PodFailed,
-				ContainerStatuses: []v1.ContainerStatus{
-					{
-						State: v1.ContainerState{
-							Terminated: &v1.ContainerStateTerminated{},
-						},
-					},
-				},
-			},
-		},
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				UID:         "2",
-				Name:        "completed-pod2",
-				Namespace:   "ns",
-				Annotations: make(map[string]string),
-			},
-			Status: v1.PodStatus{
-				Phase: v1.PodSucceeded,
-				ContainerStatuses: []v1.ContainerStatus{
-					{
-						State: v1.ContainerState{
-							Terminated: &v1.ContainerStateTerminated{},
-						},
-					},
-				},
-			},
-		},
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				UID:               "3",
-				Name:              "completed-pod3",
-				Namespace:         "ns",
-				Annotations:       make(map[string]string),
-				DeletionTimestamp: &now,
-			},
-			Status: v1.PodStatus{
-				ContainerStatuses: []v1.ContainerStatus{
-					{
-						State: v1.ContainerState{
-							Terminated: &v1.ContainerStateTerminated{},
-						},
-					},
-				},
-			},
-		},
+		pod,
 	}
 	for _, pod := range pods {
 		(*kl.GetPodWorkers()).UpdatePod(kubelet.UpdatePodOptions{
@@ -658,7 +588,7 @@ func TestDispatchWorkOfCompletedPod(t *testing.T) {
 	}
 }
 
-func TestDispatchWorkOfActivePod(t *testing.T, randomData string) {
+func TestDispatchWorkOfActivePod(t *testing.T, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
@@ -672,35 +602,7 @@ func TestDispatchWorkOfActivePod(t *testing.T, randomData string) {
 		t:     t,
 	}
 	pods := []*v1.Pod{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				UID:         types.UID(randomData),
-				Name:        randomData,
-				Namespace:   randomData,
-				Annotations: make(map[string]string),
-			},
-			Status: v1.PodStatus{
-				Phase: v1.PodRunning,
-			},
-		},
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				UID:         types.UID(randomData),
-				Name:        randomData,
-				Namespace:   randomData,
-				Annotations: make(map[string]string),
-			},
-			Status: v1.PodStatus{
-				Phase: v1.PodFailed,
-				ContainerStatuses: []v1.ContainerStatus{
-					{
-						State: v1.ContainerState{
-							Running: &v1.ContainerStateRunning{},
-						},
-					},
-				},
-			},
-		},
+		pod,
 	}
 
 	for _, pod := range pods {
@@ -736,7 +638,7 @@ func TestHandlePodCleanups(t *testing.T, pod *kubecontainer.Pod) {
 	fakeRuntime.AssertKilledPods([]string(nil))
 }
 
-func TestHandlePodRemovesWhenSourcesAreReady(t *testing.T) {
+func TestHandlePodRemovesWhenSourcesAreReady(t *testing.T, pod *v1.Pod) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
@@ -756,7 +658,7 @@ func TestHandlePodRemovesWhenSourcesAreReady(t *testing.T) {
 	}
 
 	pods := []*v1.Pod{
-		podWithUIDNameNs("1", "foo", "new"),
+		pod,
 	}
 
 	fakeRuntime := testKubelet.fakeRuntime
@@ -809,20 +711,13 @@ func checkPodStatus(t *testing.T, kl *kubelet.Kubelet, pod *v1.Pod, phase v1.Pod
 }
 
 // Tests that we handle port conflicts correctly by setting the failed status in status map.
-func TestHandlePortConflicts(t *testing.T) {
+func TestHandlePortConflicts(t *testing.T, node *v1.Node, pod *v1.Pod) {
 	testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
 	defer testKubelet.Cleanup()
 	kl := testKubelet.kubelet
 
 	*kl.GetNodeLister() = testNodeLister{nodes: []*v1.Node{
-		{
-			ObjectMeta: metav1.ObjectMeta{Name: string(*kl.GetNodeName())},
-			Status: v1.NodeStatus{
-				Allocatable: v1.ResourceList{
-					v1.ResourcePods: *resource.NewQuantity(110, resource.DecimalSI),
-				},
-			},
-		},
+		node,
 	}}
 
 	recorder := record.NewFakeRecorder(20)
@@ -837,8 +732,8 @@ func TestHandlePortConflicts(t *testing.T) {
 
 	spec := v1.PodSpec{NodeName: string(*kl.GetNodeName()), Containers: []v1.Container{{Ports: []v1.ContainerPort{{HostPort: 80}}}}}
 	pods := []*v1.Pod{
-		podWithUIDNameNsSpec("123456789", "newpod", "foo", spec),
-		podWithUIDNameNsSpec("987654321", "oldpod", "foo", spec),
+		podWithUIDNameNsSpecFromFuzzer("123456789", "newpod", "foo", spec, pod),
+		podWithUIDNameNsSpecFromFuzzer("987654321", "oldpod", "foo", spec, pod),
 	}
 	// Make sure the Pods are in the reverse order of creation time.
 	pods[1].CreationTimestamp = metav1.NewTime(time.Now())
@@ -1782,6 +1677,11 @@ func podWithUIDNameNs(uid types.UID, name, namespace string) *v1.Pod {
 
 func podWithUIDNameNsSpec(uid types.UID, name, namespace string, spec v1.PodSpec) *v1.Pod {
 	pod := podWithUIDNameNs(uid, name, namespace)
+	pod.Spec = spec
+	return pod
+}
+
+func podWithUIDNameNsSpecFromFuzzer(uid types.UID, name, namespace string, spec v1.PodSpec, pod *v1.Pod) *v1.Pod {
 	pod.Spec = spec
 	return pod
 }

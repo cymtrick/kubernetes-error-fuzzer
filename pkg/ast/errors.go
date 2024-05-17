@@ -17,7 +17,7 @@ type Entry struct {
 }
 
 func main() {
-	path := "../kubelet/kubelet_volumes.go"
+	path := "../kubelet/kubelet.go"
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, path, nil, 0)
 	if err != nil {
@@ -67,7 +67,7 @@ func main() {
 		return
 	}
 
-	err = os.WriteFile("log_entries_kubelet_volumes.json", jsonData, 0644)
+	err = os.WriteFile("log_entries_kubelet.json", jsonData, 0644)
 	if err != nil {
 		fmt.Printf("Error writing file: %v\n", err)
 		return
@@ -78,14 +78,21 @@ func processLogEntry(entries *[]Entry, funcName string, callExpr *ast.CallExpr, 
 	position := fset.Position(callExpr.Pos()).String()
 	var errorString string
 	if len(callExpr.Args) > 0 {
-		formatArg, ok := callExpr.Args[0].(*ast.BasicLit)
-		if ok && formatArg.Kind == token.STRING {
-			formatStr := strings.Trim(formatArg.Value, "\"")
-			args := make([]interface{}, len(callExpr.Args)-1)
-			for i, arg := range callExpr.Args[1:] {
-				args[i] = argToString(arg)
+		if funcName == "ErrorS" && len(callExpr.Args) >= 2 {
+			// Assume the second arg is the error message (commonly structured logging in klog)
+			if msgArg, ok := callExpr.Args[1].(*ast.BasicLit); ok && msgArg.Kind == token.STRING {
+				errorString = strings.Trim(msgArg.Value, "\"")
 			}
-			errorString = fmt.Sprintf(formatStr, args...)
+		} else {
+			formatArg, ok := callExpr.Args[0].(*ast.BasicLit)
+			if ok && formatArg.Kind == token.STRING {
+				formatStr := strings.Trim(formatArg.Value, "\"")
+				args := make([]interface{}, len(callExpr.Args)-1)
+				for i, arg := range callExpr.Args[1:] {
+					args[i] = argToString(arg)
+				}
+				errorString = fmt.Sprintf(formatStr, args...)
+			}
 		}
 	}
 
