@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/protobuf"
+	kubelet "k8s.io/kubernetes/pkg/kubelet"
 	mock "k8s.io/kubernetes/pkg/mock"
 )
 import (
@@ -139,20 +140,20 @@ func fuzzPodObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Pod {
 
 		switch {
 		case err == nil && test.errFn != nil:
-			t.Errorf("%d: failed: %v", i, err)
+			fmt.Errorf("%d: failed: %v", i, err)
 			logErrorToInfrastructure("panic", err)
 			continue
 		case err != nil && test.errFn == nil:
-			t.Errorf("%d: failed: %v", i, err)
+			fmt.Errorf("%d: failed: %v", i, err)
 			logErrorToInfrastructure("panic", err)
 			continue
 		case err != nil:
 			if !test.errFn(err) {
-				t.Errorf("%d: failed: %v", i, err)
+				fmt.Errorf("%d: failed: %v", i, err)
 				logErrorToInfrastructure("panic", err)
 			}
 			if obj != nil {
-				t.Errorf("%d: should not have returned an object", i)
+				fmt.Errorf("%d: should not have returned an object", i)
 			}
 			continue
 		}
@@ -206,20 +207,20 @@ func fuzzNodeObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t) *v1.Node {
 
 		switch {
 		case err == nil && test.errFn != nil:
-			t.Errorf("%d: failed: %v", i, err)
+			fmt.Errorf("%d: failed: %v", i, err)
 			logErrorToInfrastructure("panic", err)
 			continue
 		case err != nil && test.errFn == nil:
-			t.Errorf("%d: failed: %v", i, err)
+			fmt.Errorf("%d: failed: %v", i, err)
 			logErrorToInfrastructure("panic", err)
 			continue
 		case err != nil:
 			if !test.errFn(err) {
-				t.Errorf("%d: failed: %v", i, err)
+				fmt.Errorf("%d: failed: %v", i, err)
 				logErrorToInfrastructure("panic", err)
 			}
 			if obj != nil {
-				t.Errorf("%d: should not have returned an object", i)
+				fmt.Errorf("%d: should not have returned an object", i)
 			}
 			continue
 		}
@@ -328,7 +329,8 @@ func TestSyncPodsStartPod(dataPtr unsafe.Pointer, dataSize C.size_t) {
 	}()
 	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
-	mock.TestSyncPodsStartPod(t, pod)
+	kubelet.TestSyncPodsStartPod(t, pod)
+	kubelet.TestHandlePodCleanupsPerQOS(t)
 
 }
 
@@ -353,7 +355,7 @@ func TestDispatchWorkOfCompletedPod(dataPtr unsafe.Pointer, dataSize C.size_t) {
 	}()
 	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
-	mock.TestDispatchWorkOfCompletedPod(t, pod)
+	kubelet.TestDispatchWorkOfCompletedPod(t, pod)
 }
 
 //export TestDispatchWorkOfActivePod
@@ -377,56 +379,211 @@ func TestDispatchWorkOfActivePod(dataPtr unsafe.Pointer, dataSize C.size_t) {
 	}()
 	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
-	mock.TestDispatchWorkOfActivePod(t, pod)
+	kubelet.TestDispatchWorkOfActivePod(t, pod)
 }
 
 //export TestHandlePodRemovesWhenSourcesAreReady
 func TestHandlePodRemovesWhenSourcesAreReady(dataPtr unsafe.Pointer, dataSize C.size_t) {
-	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			// Ensure that nil pointer dereference errors are excluded
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
 	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
-	mock.TestHandlePodRemovesWhenSourcesAreReady(t, pod)
+	kubelet.TestHandlePodRemovesWhenSourcesAreReady(t, pod)
 }
 
 //export TestHandlePortConflicts
 func TestHandlePortConflicts(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
-	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			// Ensure that nil pointer dereference errors are excluded
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
 	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
 	node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
 	t := new(testing.T)
-	mock.TestHandlePortConflicts(t, node, pod)
+
+	kubelet.TestHandlePortConflicts(t, node, pod)
+}
+
+//export TestHandleHostNameConflicts
+func TestHandleHostNameConflicts(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
+	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+	node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
+	t := new(testing.T)
+
+	kubelet.TestHandleHostNameConflicts(t, node, pod)
+}
+
+//export TestHandleNodeSelectorBasedOnOS
+func TestHandleNodeSelectorBasedOnOS(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
+	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+	node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
+	t := new(testing.T)
+
+	kubelet.TestHandleNodeSelectorBasedOnOS(t, node, pod)
+}
+
+//export TestHandleMemExceeded
+func TestHandleMemExceeded(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
+	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+	node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
+	t := new(testing.T)
+
+	kubelet.TestHandleMemExceeded(t, node, pod)
+}
+
+//export TestHandlePluginResources
+func TestHandlePluginResources(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
+	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+	node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
+	t := new(testing.T)
+
+	kubelet.TestHandlePluginResources(t, node, pod)
+}
+
+//export TestPurgingObsoleteStatusMapEntries
+func TestPurgingObsoleteStatusMapEntries(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
+	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+	t := new(testing.T)
+
+	kubelet.TestPurgingObsoleteStatusMapEntries(t, pod)
+}
+
+//export TestValidateContainerLogStatus
+func TestValidateContainerLogStatus(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		err, ok := r.(error)
+	// 		errMsg := ""
+	// 		if ok {
+	// 			errMsg = err.Error()
+	// 		} else {
+	// 			errMsg = fmt.Sprint(r)
+	// 		}
+	// 		// Ensure that nil pointer dereference errors are excluded
+	// 		if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+	// 			fmt.Println("Excluding nil pointer dereference error from logs.")
+	// 			return
+	// 		}
+	// 		logErrorToInfrastructure("panic", errMsg)
+	// 	}
+	// }()
+	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+	t := new(testing.T)
+
+	kubelet.TestValidateContainerLogStatus(t, pod)
 }
 
 func main() {

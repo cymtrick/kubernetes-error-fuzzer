@@ -1728,6 +1728,18 @@ func (kl *Kubelet) GetCgroupsPerQOS() *bool {
 
 // GetDNSConfigurer returns a pointer to dns.Configurer
 func (kl *Kubelet) GetDNSConfigurer() *dns.Configurer {
+
+	if kl.dnsConfigurer == nil {
+		recorder := record.NewFakeRecorder(20)
+		nodeRef := &v1.ObjectReference{
+			Kind: "Node",
+			Name: "testNode",
+			UID:  types.UID("testNode"),
+		}
+		configurer := dns.NewConfigurer(recorder, nodeRef, nil, nil, "TEST", "")
+		kl.dnsConfigurer = configurer
+	}
+
 	return kl.dnsConfigurer
 }
 
@@ -2997,7 +3009,6 @@ func (kl *Kubelet) HandlePodAdditions(pods []*v1.Pod) {
 			})
 			continue
 		}
-
 		// Only go through the admission process if the pod is not requested
 		// for termination by another part of the kubelet. If the pod is already
 		// using resources (previously admitted), the pod worker is going to be
@@ -3008,13 +3019,11 @@ func (kl *Kubelet) HandlePodAdditions(pods []*v1.Pod) {
 			// We failed pods that we rejected, so activePods include all admitted
 			// pods that are alive.
 			activePods := kl.filterOutInactivePods(existingPods)
-
 			if utilfeature.DefaultFeatureGate.Enabled(features.InPlacePodVerticalScaling) {
 				// To handle kubelet restarts, test pod admissibility using AllocatedResources values
 				// (for cpu & memory) from checkpoint store. If found, that is the source of truth.
 				podCopy := pod.DeepCopy()
 				kl.updateContainerResourceAllocation(podCopy)
-
 				// Check if we can admit the pod; if not, reject it.
 				if ok, reason, message := kl.canAdmitPod(activePods, podCopy); !ok {
 					kl.rejectPod(pod, reason, message)

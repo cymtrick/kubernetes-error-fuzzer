@@ -774,6 +774,7 @@ func (nl testNodeLister) List(_ labels.Selector) (ret []*v1.Node, err error) {
 func checkPodStatus(t *testing.T, kl *Kubelet, pod *v1.Pod, phase v1.PodPhase) {
 	t.Helper()
 	status, found := kl.statusManager.GetPodStatus(pod.UID)
+	fmt.Println("Status of pod %v is not found in the status map", status, found)
 	require.True(t, found, "Status of pod %q is not found in the status map", pod.UID)
 	require.Equal(t, phase, status.Phase)
 }

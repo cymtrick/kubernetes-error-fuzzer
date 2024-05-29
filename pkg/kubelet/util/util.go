@@ -21,6 +21,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/klog/v2"
 	"k8s.io/kubernetes/pkg/util/filesystem"
 )
 
@@ -54,10 +55,12 @@ func GetNodenameForKernel(hostname string, hostDomainName string, setHostnameAsF
 func GetContainerByIndex(containers []v1.Container, statuses []v1.ContainerStatus, idx int) (v1.Container, bool) {
 	if idx < 0 || idx >= len(containers) || idx >= len(statuses) {
 		fmt.Errorf("first one")
+		fmt.Printf("first one idx %s", idx)
 		return v1.Container{}, false
 	}
 	if statuses[idx].Name != containers[idx].Name {
 		fmt.Errorf("second one")
+		klog.InfoS("second one")
 		return v1.Container{}, false
 	}
 	return containers[idx], true

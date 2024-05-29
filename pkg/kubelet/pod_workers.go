@@ -830,6 +830,7 @@ func isPodStatusCacheTerminal(status *kubecontainer.PodStatus) bool {
 // terminating, or terminated, and will transition to terminating if: deleted on the apiserver,
 // discovered to have a terminal phase (Succeeded or Failed), or evicted by the kubelet.
 func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
+	fmt.Printf("reached pod update block 1")
 	// Handle when the pod is an orphan (no config) and we only have runtime status by running only
 	// the terminating part of the lifecycle. A running pod contains only a minimal set of information
 	// about the pod
@@ -853,7 +854,7 @@ func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
 	} else {
 		uid, ns, name = options.Pod.UID, options.Pod.Namespace, options.Pod.Name
 	}
-
+	fmt.Printf("reached pod update block 2")
 	p.podLock.Lock()
 	defer p.podLock.Unlock()
 
@@ -875,6 +876,7 @@ func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
 			// However, `filterOutInactivePods`, considers pods that are actively terminating as active. As a result, `IsPodKnownTerminated()` needs to return true and thus `terminatedAt` needs to be set.
 			if statusCache, err := p.podCache.Get(uid); err == nil {
 				if isPodStatusCacheTerminal(statusCache) {
+					fmt.Printf("reached pod update block 3")
 					// At this point we know:
 					// (1) The pod is terminal based on the config source.
 					// (2) The pod is terminal based on the runtime cache.
@@ -917,6 +919,7 @@ func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
 			// options.Pod will be nil and other methods must handle that appropriately.
 			pod = options.RunningPod.ToAPIPod()
 		}
+		fmt.Printf("reached pod update block 3")
 	}
 
 	// When we see a create update on an already terminating pod, that implies two pods with the same UID were created in
@@ -970,6 +973,7 @@ func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
 
 	// once a pod is terminating, all updates are kills and the grace period can only decrease
 	var wasGracePeriodShortened bool
+	fmt.Printf("reached pod update block 4")
 	switch {
 	case status.IsTerminated():
 		// A terminated pod may still be waiting for cleanup - if we receive a runtime pod kill request
@@ -1021,6 +1025,7 @@ func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
 	podUpdates, exists := p.podUpdates[uid]
 	if !exists {
 		// buffer the channel to avoid blocking this method
+		fmt.Printf("reached pod update block 5")
 		podUpdates = make(chan struct{}, 1)
 		p.podUpdates[uid] = podUpdates
 
@@ -1037,6 +1042,7 @@ func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
 		} else {
 			outCh = podUpdates
 		}
+		fmt.Printf("reached pod update block 8")
 
 		// spawn a pod worker
 		go func() {
@@ -1065,9 +1071,11 @@ func (p *podWorkers) UpdatePod(options UpdatePodOptions) {
 
 	if (becameTerminating || wasGracePeriodShortened) && status.cancelFn != nil {
 		klog.V(3).InfoS("Cancelling current pod sync", "pod", klog.KRef(ns, name), "podUID", uid, "workType", status.WorkType())
+		fmt.Printf("reached pod update block 8")
 		status.cancelFn()
 		return
 	}
+
 }
 
 // calculateEffectiveGracePeriod sets the initial grace period for a newly terminating pod or allows a
