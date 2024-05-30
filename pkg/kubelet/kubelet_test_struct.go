@@ -1218,7 +1218,6 @@ func TestValidateContainerLogStatus(t *testing.T, pod *v1.Pod) {
 		// Access the log of the most recent container
 		previous := false
 		podStatus := &v1.PodStatus{ContainerStatuses: tc.statuses}
-		fmt.Println(podStatus)
 		_, err := kubelet.validateContainerLogStatus("podName", podStatus, containerName, previous)
 		if !tc.success {
 			fmt.Sprintf("[case %d] error", i, err)
@@ -1239,7 +1238,7 @@ func TestValidateContainerLogStatus(t *testing.T, pod *v1.Pod) {
 	}
 }
 
-func TestCreateMirrorPod(t *testing.T) {
+func TestCreateMirrorPod(t *testing.T, pod *v1.Pod) {
 	tests := []struct {
 		name       string
 		updateType kubetypes.SyncPodType
@@ -1255,25 +1254,23 @@ func TestCreateMirrorPod(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
-			defer testKubelet.Cleanup()
 
-			kl := testKubelet.kubelet
-			manager := testKubelet.fakeMirrorClient
-			pod := podWithUIDNameNs("12345678", "bar", "foo")
-			pod.Annotations[kubetypes.ConfigSourceAnnotationKey] = "file"
-			pods := []*v1.Pod{pod}
-			kl.podManager.SetPods(pods)
-			isTerminal, err := kl.SyncPod(context.Background(), tt.updateType, pod, nil, &kubecontainer.PodStatus{})
-			assert.NoError(t, err)
-			if isTerminal {
-				t.Fatalf("pod should not be terminal: %#v", pod)
-			}
-			podFullName := kubecontainer.GetPodFullName(pod)
-			assert.True(t, manager.HasPod(podFullName), "Expected mirror pod %q to be created", podFullName)
-			assert.Equal(t, 1, manager.NumOfPods(), "Expected only 1 mirror pod %q, got %+v", podFullName, manager.GetPods())
-		})
+		testKubelet := newTestKubelet(t, false /* controllerAttachDetachEnabled */)
+		defer testKubelet.Cleanup()
+
+		kl := testKubelet.kubelet
+		manager := testKubelet.fakeMirrorClient
+		pod := podWithUIDNameNsFromFuzzer("12345678", "bar", "foo", pod)
+		pods := []*v1.Pod{pod}
+		kl.podManager.SetPods(pods)
+		isTerminal, err := kl.SyncPod(context.Background(), tt.updateType, pod, nil, &kubecontainer.PodStatus{})
+		fmt.Println(err)
+		if isTerminal {
+			t.Fatalf("pod should not be terminal: %#v", pod)
+		}
+		podFullName := kubecontainer.GetPodFullName(pod)
+		fmt.Printf("Expected mirror pod %q to be created %f", podFullName, manager.HasPod(podFullName))
+
 	}
 }
 

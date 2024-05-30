@@ -88,6 +88,7 @@ extern void TestHandleMemExceeded(void* dataPtrPod, size_t dataSizePod, void* da
 extern void TestHandlePluginResources(void* dataPtrPod, size_t dataSizePod, void* dataPtrNode, size_t dataSizeNode);
 extern void TestPurgingObsoleteStatusMapEntries(void* dataPtrPod, size_t dataSizePod);
 extern void TestValidateContainerLogStatus(void* dataPtrPod, size_t dataSizePod);
+extern void TestCreateMirrorPod(void* dataPtrPod, size_t dataSizePod);
 
 #ifdef __cplusplus
 }
