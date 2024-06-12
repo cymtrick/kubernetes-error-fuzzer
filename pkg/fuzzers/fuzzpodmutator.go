@@ -3,9 +3,13 @@ package main
 import (
 	"C"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"os"
 	run "runtime"
+	"strings"
+	"sync"
+	"testing"
 	"time"
 	"unsafe"
 
@@ -14,12 +18,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/protobuf"
+	klog "k8s.io/klog/v2"
 	kubelet "k8s.io/kubernetes/pkg/kubelet"
-	mock "k8s.io/kubernetes/pkg/mock"
 )
 import (
-	"strings"
-	"testing"
+	"encoding/json"
+	"reflect"
 )
 
 // ErrorLog
@@ -29,6 +33,84 @@ type ErrorLog struct {
 	ErrorMessage string
 	FunctionName string
 	CoverageData string
+}
+
+var initOnce sync.Once
+
+// Initialize klog only once
+func initializeKlog() {
+	initOnce.Do(func() {
+		klog.InitFlags(nil)
+		flag.Set("logtostderr", "false")
+		flag.Set("log_file", "myfile.log")
+		flag.Parse()
+		klog.Info("klog initialized")
+	})
+}
+
+// Recursively extract field values from the map and convert them to a suitable format for libfuzzer
+func extractFieldValues(data interface{}) ([]byte, error) {
+	var result []byte
+
+	val := reflect.ValueOf(data)
+	if !val.IsValid() || (val.Kind() == reflect.Ptr && val.IsNil()) {
+		return result, nil
+	}
+
+	switch val.Kind() {
+	case reflect.Map:
+		for _, key := range val.MapKeys() {
+			mapValue := val.MapIndex(key)
+			if !mapValue.IsValid() || (mapValue.Kind() == reflect.Ptr && mapValue.IsNil()) {
+				continue
+			}
+			fieldValue, err := extractFieldValues(mapValue.Interface())
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, fieldValue...)
+			result = append(result, '\n')
+		}
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < val.Len(); i++ {
+			elementValue := val.Index(i)
+			if !elementValue.IsValid() || (elementValue.Kind() == reflect.Ptr && elementValue.IsNil()) {
+				continue
+			}
+			fieldValue, err := extractFieldValues(elementValue.Interface())
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, fieldValue...)
+			result = append(result, '\n')
+		}
+	default:
+		fieldBytes, err := json.Marshal(val.Interface())
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, fieldBytes...)
+	}
+
+	return result, nil
+}
+
+// Convert pod object to a byte slice in a format suitable for libfuzzer
+func podToFuzzerFormat(pod *v1.Pod) ([]byte, error) {
+	// Marshal pod to JSON
+	podBytes, err := json.Marshal(pod)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal JSON to a map
+	var podMap map[string]interface{}
+	if err := json.Unmarshal(podBytes, &podMap); err != nil {
+		return nil, err
+	}
+
+	// Extract field values from the map
+	return extractFieldValues(podMap)
 }
 
 func logErrorToInfrastructure(errorType string, err interface{}) {
@@ -324,6 +406,7 @@ func fuzzContainerStatusObjectMutator(dataPtr unsafe.Pointer, dataSize C.size_t)
 
 //export DoesNotDeletePodDirsIfContainerIsRunning
 func DoesNotDeletePodDirsIfContainerIsRunning(dataPtr unsafe.Pointer, dataSize C.size_t) {
+
 	defer func() {
 		if r := recover(); r != nil {
 			err, ok := r.(error)
@@ -340,10 +423,32 @@ func DoesNotDeletePodDirsIfContainerIsRunning(dataPtr unsafe.Pointer, dataSize C
 			}
 			logErrorToInfrastructure("panic", errMsg)
 		}
+		pod := fuzzPodObjectMutator(dataPtr, dataSize)
+		podBytes, err2 := podToFuzzerFormat(pod)
+		if err2 != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err2))
+			return
+		}
+
+		// Write the pod bytes to a file
+		file, err2 := os.OpenFile("pod_fuzzer_inpu.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err2 != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err2))
+			return
+		}
+
+		if _, err2 := file.Write(podBytes); err2 != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err2))
+			return
+		}
+		defer file.Close()
+
 	}()
+
+	initializeKlog()
 	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
-	mock.TestDoesNotDeletePodDirsIfContainerIsRunning(t, pod)
+	kubelet.TestDoesNotDeletePodDirsIfContainerIsRunning(t, pod)
 
 }
 
@@ -365,10 +470,32 @@ func SyncPodsSetStatusToFailedForPodsThatRunTooLong(dataPtr unsafe.Pointer, data
 			}
 			logErrorToInfrastructure("panic", errMsg)
 		}
+		pod := fuzzPodObjectMutator(dataPtr, dataSize)
+		podBytes, err2 := podToFuzzerFormat(pod)
+		if err2 != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err2))
+			return
+		}
+
+		// Write the pod bytes to a file
+		file, err2 := os.OpenFile("pod_fuzzer_inpu.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err2 != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err2))
+			return
+		}
+
+		if _, err2 := file.Write(podBytes); err2 != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err2))
+			return
+		}
+		defer file.Close()
+
 	}()
+
+	initializeKlog()
 	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
-	mock.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
+	kubelet.TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(t, pod)
 
 }
 
@@ -393,7 +520,7 @@ func SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(dataPtr unsafe.Pointer, 
 	}()
 	pod := fuzzPodObjectMutator(dataPtr, dataSize)
 	t := new(testing.T)
-	mock.TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t, pod)
+	kubelet.TestSyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(t, pod)
 
 }
 
@@ -915,6 +1042,8 @@ func TestGetPodsToSync(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	// 		logErrorToInfrastructure("panic", errMsg)
 	// 	}
 	// }()
+	initializeKlog()
+	klog.InfoS("etest")
 	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
 	t := new(testing.T)
 	kubelet.TestGetPodsToSync(t, pod)

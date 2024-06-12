@@ -31,15 +31,14 @@ import (
 	"testing"
 	"time"
 
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/sdk/trace/tracetest"
-	oteltrace "go.opentelemetry.io/otel/trace"
-
 	"github.com/golang/mock/gomock"
 	cadvisorapi "github.com/google/cadvisor/info/v1"
 	cadvisorapiv2 "github.com/google/cadvisor/info/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	core "k8s.io/client-go/testing"
 	"k8s.io/mount-utils"
 
@@ -107,9 +106,6 @@ import (
 	testingclock "k8s.io/utils/clock/testing"
 	utilpointer "k8s.io/utils/pointer"
 )
-
-func init() {
-}
 
 const (
 	testKubeletHostname = "127.0.0.1"
@@ -1645,27 +1641,16 @@ func podWithUIDNameNs(uid types.UID, name, namespace string) *v1.Pod {
 }
 
 func podWithUIDNameNsFromFuzzer(uid types.UID, name, namespace string, pod *v1.Pod) *v1.Pod {
-	pod.ObjectMeta = metav1.ObjectMeta{
-		UID:         uid,
-		Name:        name,
-		Namespace:   namespace,
-		Annotations: map[string]string{},
-	}
 	return pod
 }
 
 func podWithUIDNameNsSpec(uid types.UID, name, namespace string, spec v1.PodSpec) *v1.Pod {
 	pod := podWithUIDNameNs(uid, name, namespace)
-
 	pod.Spec = spec
 	return pod
 }
 
 func podWithUIDNameNsSpecFromFuzzer(uid types.UID, name, namespace string, spec v1.PodSpec, pod *v1.Pod) *v1.Pod {
-	pod.ObjectMeta.UID = uid
-	pod.ObjectMeta.Name = name
-	pod.ObjectMeta.Namespace = namespace
-	pod.Spec = spec
 	return pod
 }
 
