@@ -640,53 +640,53 @@ func SyncPodsSetStatusToFailedForPodsThatRunTooLong(dataPtrPod unsafe.Pointer, d
 //export SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed
 func SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -699,53 +699,53 @@ func SyncPodsDoesNotSetPodsThatDidNotRunTooLongToFailed(dataPtrPod unsafe.Pointe
 //export TestSyncPodsStartPod
 func TestSyncPodsStartPod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestSyncPodsStartPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestSyncPodsStartPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -758,53 +758,53 @@ func TestSyncPodsStartPod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 //export TestDispatchWorkOfCompletedPod
 func TestDispatchWorkOfCompletedPod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestDispatchWorkOfCompletedPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestDispatchWorkOfCompletedPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -816,53 +816,53 @@ func TestDispatchWorkOfCompletedPod(dataPtrPod unsafe.Pointer, dataSizePod C.siz
 //export TestDispatchWorkOfActivePod
 func TestDispatchWorkOfActivePod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestDispatchWorkOfActivePod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestDispatchWorkOfActivePod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -874,53 +874,53 @@ func TestDispatchWorkOfActivePod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t
 //export TestHandlePodRemovesWhenSourcesAreReady
 func TestHandlePodRemovesWhenSourcesAreReady(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestHandlePodRemovesWhenSourcesAreReady.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestHandlePodRemovesWhenSourcesAreReady.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -932,59 +932,59 @@ func TestHandlePodRemovesWhenSourcesAreReady(dataPtrPod unsafe.Pointer, dataSize
 //export TestHandlePortConflicts
 func TestHandlePortConflicts(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: ", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-			node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
-			err = storePodInDatabasePod(pod, "error-pod-"+hash)
-			err = storePodInDatabaseNode(node, "error-node-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			nodeBytes, err := runtimeObjectToFuzzerFormat(node)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestHandlePortConflicts.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
-			if _, err := file.Write(nodeBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: ", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+		node := fuzzNodeObjectMutator(dataPtrNode, dataSizeNode)
+		err = storePodInDatabasePod(pod, "error-pod-"+hash)
+		err = storePodInDatabaseNode(node, "error-node-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		nodeBytes, err := runtimeObjectToFuzzerFormat(node)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestHandlePortConflicts.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		if _, err := file.Write(nodeBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -999,53 +999,53 @@ func TestHandlePortConflicts(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, da
 //export TestHandleHostNameConflicts
 func TestHandleHostNameConflicts(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestHandleHostNameConflicts.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestHandleHostNameConflicts.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1059,53 +1059,53 @@ func TestHandleHostNameConflicts(dataPtrPod unsafe.Pointer, dataSizePod C.size_t
 //export TestHandleNodeSelectorBasedOnOS
 func TestHandleNodeSelectorBasedOnOS(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestHandleNodeSelectorBasedOnOS.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestHandleNodeSelectorBasedOnOS.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1119,53 +1119,53 @@ func TestHandleNodeSelectorBasedOnOS(dataPtrPod unsafe.Pointer, dataSizePod C.si
 //export TestHandleMemExceeded
 func TestHandleMemExceeded(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestHandleMemExceeded.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestHandleMemExceeded.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1238,53 +1238,53 @@ func TestHandlePluginResources(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, 
 //export TestPurgingObsoleteStatusMapEntries
 func TestPurgingObsoleteStatusMapEntries(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestPurgingObsoleteStatusMapEntries.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestPurgingObsoleteStatusMapEntries.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1297,53 +1297,53 @@ func TestPurgingObsoleteStatusMapEntries(dataPtrPod unsafe.Pointer, dataSizePod 
 //export TestValidateContainerLogStatus
 func TestValidateContainerLogStatus(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestValidateContainerLogStatus.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestValidateContainerLogStatus.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1356,53 +1356,53 @@ func TestValidateContainerLogStatus(dataPtrPod unsafe.Pointer, dataSizePod C.siz
 //export TestCreateMirrorPod
 func TestCreateMirrorPod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestCreateMirrorPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestCreateMirrorPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1415,53 +1415,53 @@ func TestCreateMirrorPod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 //export TestDeleteOutdatedMirrorPod
 func TestDeleteOutdatedMirrorPod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestDeleteOutdatedMirrorPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestDeleteOutdatedMirrorPod.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1474,53 +1474,53 @@ func TestDeleteOutdatedMirrorPod(dataPtrPod unsafe.Pointer, dataSizePod C.size_t
 //export TestDeleteOrphanedMirrorPods
 func TestDeleteOrphanedMirrorPods(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestDeleteOrphanedMirrorPods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestDeleteOrphanedMirrorPods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1533,53 +1533,53 @@ func TestDeleteOrphanedMirrorPods(dataPtrPod unsafe.Pointer, dataSizePod C.size_
 //export TestNetworkErrorsWithoutHostNetwork
 func TestNetworkErrorsWithoutHostNetwork(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestNetworkErrorsWithoutHostNetwork.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestNetworkErrorsWithoutHostNetwork.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1592,53 +1592,53 @@ func TestNetworkErrorsWithoutHostNetwork(dataPtrPod unsafe.Pointer, dataSizePod 
 //export TestFilterOutInactivePods
 func TestFilterOutInactivePods(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestFilterOutInactivePods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestFilterOutInactivePods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1651,53 +1651,53 @@ func TestFilterOutInactivePods(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) 
 //export TestSyncPodsSetStatusToFailedForPodsThatRunTooLong
 func TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestSyncPodsSetStatusToFailedForPodsThatRunTooLong.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestSyncPodsSetStatusToFailedForPodsThatRunTooLong.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1709,53 +1709,53 @@ func TestSyncPodsSetStatusToFailedForPodsThatRunTooLong(dataPtrPod unsafe.Pointe
 //export TestDeletePodDirsForDeletedPods
 func TestDeletePodDirsForDeletedPods(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestDeletePodDirsForDeletedPods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestDeletePodDirsForDeletedPods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1767,53 +1767,53 @@ func TestDeletePodDirsForDeletedPods(dataPtrPod unsafe.Pointer, dataSizePod C.si
 //export TestDoesNotDeletePodDirsForTerminatedPods
 func TestDoesNotDeletePodDirsForTerminatedPods(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestDoesNotDeletePodDirsForTerminatedPods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestDoesNotDeletePodDirsForTerminatedPods.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 	initializeKlog()
 	pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
@@ -1824,53 +1824,53 @@ func TestDoesNotDeletePodDirsForTerminatedPods(dataPtrPod unsafe.Pointer, dataSi
 //export TestDoesNotDeletePodDirsIfContainerIsRunning
 func TestDoesNotDeletePodDirsIfContainerIsRunning(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestDoesNotDeletePodDirsIfContainerIsRunning.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestDoesNotDeletePodDirsIfContainerIsRunning.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1882,53 +1882,53 @@ func TestDoesNotDeletePodDirsIfContainerIsRunning(dataPtrPod unsafe.Pointer, dat
 //export TestGetPodsToSync
 func TestGetPodsToSync(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestGetPodsToSync.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestGetPodsToSync.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1941,53 +1941,53 @@ func TestGetPodsToSync(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 //export TestGenerateAPIPodStatusWithSortedContainers
 func TestGenerateAPIPodStatusWithSortedContainers(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestGenerateAPIPodStatusWithSortedContainers.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestGenerateAPIPodStatusWithSortedContainers.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -1999,53 +1999,53 @@ func TestGenerateAPIPodStatusWithSortedContainers(dataPtrPod unsafe.Pointer, dat
 //export TestGenerateAPIPodStatusWithReasonCache
 func TestGenerateAPIPodStatusWithReasonCache(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestGenerateAPIPodStatusWithReasonCache.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestGenerateAPIPodStatusWithReasonCache.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -2057,53 +2057,53 @@ func TestGenerateAPIPodStatusWithReasonCache(dataPtrPod unsafe.Pointer, dataSize
 //export TestGenerateAPIPodStatusWithDifferentRestartPolicies
 func TestGenerateAPIPodStatusWithDifferentRestartPolicies(dataPtrPod unsafe.Pointer, dataSizePod C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestGenerateAPIPodStatusWithDifferentRestartPolicies.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestGenerateAPIPodStatusWithDifferentRestartPolicies.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -2115,53 +2115,53 @@ func TestGenerateAPIPodStatusWithDifferentRestartPolicies(dataPtrPod unsafe.Poin
 //export TestHandlePodAdditionsInvokesPodAdmitHandlers
 func TestHandlePodAdditionsInvokesPodAdmitHandlers(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestHandlePodAdditionsInvokesPodAdmitHandlers.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestHandlePodAdditionsInvokesPodAdmitHandlers.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()
@@ -2175,53 +2175,53 @@ func TestHandlePodAdditionsInvokesPodAdmitHandlers(dataPtrPod unsafe.Pointer, da
 //export TestPodResourceAllocationReset
 func TestPodResourceAllocationReset(dataPtrPod unsafe.Pointer, dataSizePod C.size_t, dataPtrNode unsafe.Pointer, dataSizeNode C.size_t) {
 	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			errMsg := ""
-			if ok {
-				errMsg = err.Error()
-			} else {
-				errMsg = fmt.Sprint(r)
-			}
-			if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
-				fmt.Println("Excluding nil pointer dereference error from logs.")
-				return
-			}
-			logErrorToInfrastructure("panic", errMsg)
-		} else {
-			hash, err := generateRandomHash()
-			if err != nil {
-				fmt.Printf("Error generating hash: %v\n", err)
-				return
-			}
-			klog.Info("object hash: error-%s", hash)
-			pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
-
-			err = storePodInDatabasePod(pod, "error-"+hash)
-			if err != nil {
-				logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
-				return
-			}
-
-			podBytes, err := runtimeObjectToFuzzerFormat(pod)
-			if err != nil {
-				logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
-				return
-			}
-
-			// Write the pod bytes to a file (keeping this part as it was in the original function)
-			file, err := os.OpenFile("TestPodResourceAllocationReset.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
-				return
-			}
-			defer file.Close()
-
-			if _, err := file.Write(podBytes); err != nil {
-				logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
-				return
-			}
+		// if r := recover(); r != nil {
+		// 	err, ok := r.(error)
+		// 	errMsg := ""
+		// 	if ok {
+		// 		errMsg = err.Error()
+		// 	} else {
+		// 		errMsg = fmt.Sprint(r)
+		// 	}
+		// 	if strings.Contains(errMsg, "runtime error: invalid memory address or nil pointer dereference") {
+		// 		fmt.Println("Excluding nil pointer dereference error from logs.")
+		// 		return
+		// 	}
+		// 	logErrorToInfrastructure("panic", errMsg)
+		// } else {
+		hash, err := generateRandomHash()
+		if err != nil {
+			fmt.Printf("Error generating hash: %v\n", err)
+			return
 		}
+		klog.Info("object hash: error-%s", hash)
+		pod := fuzzPodObjectMutator(dataPtrPod, dataSizePod)
+
+		err = storePodInDatabasePod(pod, "error-"+hash)
+		if err != nil {
+			logErrorToInfrastructure("database_error", fmt.Sprintf("Failed to store pod in database: %v", err))
+			return
+		}
+
+		podBytes, err := runtimeObjectToFuzzerFormat(pod)
+		if err != nil {
+			logErrorToInfrastructure("conversion_error", fmt.Sprintf("Failed to convert pod to fuzzer format: %v", err))
+			return
+		}
+
+		// Write the pod bytes to a file (keeping this part as it was in the original function)
+		file, err := os.OpenFile("TestPodResourceAllocationReset.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logErrorToInfrastructure("file_error", fmt.Sprintf("Failed to open file: %v", err))
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.Write(podBytes); err != nil {
+			logErrorToInfrastructure("file_write_error", fmt.Sprintf("Failed to write pod to file: %v", err))
+			return
+		}
+		// }
 	}()
 
 	initializeKlog()

@@ -829,8 +829,6 @@ func TestHandlePortConflicts(t *testing.T, node *v1.Node, pod *v1.Pod) {
 		pods[1].UID: true,
 	}
 	kl.HandlePodAdditions(pods)
-	fmt.Println("checking pod %v", pod)
-	fmt.Println("checking node %v", node)
 
 	checkPodStatusFromFuzzer(t, kl, notfittingPod)
 	checkPodStatusFromFuzzer(t, kl, fittingPod)
