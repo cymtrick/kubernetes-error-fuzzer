@@ -1649,10 +1649,10 @@ func podWithUIDNameNsSpec(uid types.UID, name, namespace string, spec v1.PodSpec
 }
 
 func podWithUIDNameNsSpecFromFuzzer(uid types.UID, name, namespace string, spec v1.PodSpec, pod *v1.Pod) *v1.Pod {
-	// pod.ObjectMeta.UID = uid
-	// pod.ObjectMeta.Name = name
-	// pod.ObjectMeta.Namespace = namespace
-	// pod.Spec = spec
+	pod.ObjectMeta.UID = uid
+	pod.ObjectMeta.Name = name
+	pod.ObjectMeta.Namespace = namespace
+	pod.Spec = spec
 	return pod
 }
 

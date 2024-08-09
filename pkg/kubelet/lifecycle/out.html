@@ -1,0 +1,824 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>lifecycle: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">k8s.io/kubernetes/pkg/kubelet/lifecycle/admission_failure_handler_stub.go (0.0%)</option>
+				
+				<option value="file1">k8s.io/kubernetes/pkg/kubelet/lifecycle/handlers.go (86.4%)</option>
+				
+				<option value="file2">k8s.io/kubernetes/pkg/kubelet/lifecycle/interfaces.go (0.0%)</option>
+				
+				<option value="file3">k8s.io/kubernetes/pkg/kubelet/lifecycle/predicate.go (37.2%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">/*
+Copyright 2017 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package lifecycle
+
+import (
+        "k8s.io/api/core/v1"
+)
+
+// AdmissionFailureHandlerStub is an AdmissionFailureHandler that does not perform any handling of admission failure.
+// It simply passes the failure on.
+type AdmissionFailureHandlerStub struct{}
+
+var _ AdmissionFailureHandler = &amp;AdmissionFailureHandlerStub{}
+
+// NewAdmissionFailureHandlerStub returns an instance of AdmissionFailureHandlerStub.
+func NewAdmissionFailureHandlerStub() *AdmissionFailureHandlerStub <span class="cov0" title="0">{
+        return &amp;AdmissionFailureHandlerStub{}
+}</span>
+
+// HandleAdmissionFailure simply passes admission rejection on, with no special handling.
+func (n *AdmissionFailureHandlerStub) HandleAdmissionFailure(admitPod *v1.Pod, failureReasons []PredicateFailureReason) ([]PredicateFailureReason, error) <span class="cov0" title="0">{
+        return failureReasons, nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">/*
+Copyright 2014 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package lifecycle
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "net/http"
+        "net/url"
+        "strconv"
+        "strings"
+        "time"
+
+        v1 "k8s.io/api/core/v1"
+        "k8s.io/apimachinery/pkg/types"
+        "k8s.io/apimachinery/pkg/util/intstr"
+        utilfeature "k8s.io/apiserver/pkg/util/feature"
+        "k8s.io/client-go/tools/record"
+        "k8s.io/klog/v2"
+        "k8s.io/kubernetes/pkg/features"
+        kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
+        "k8s.io/kubernetes/pkg/kubelet/metrics"
+        kubetypes "k8s.io/kubernetes/pkg/kubelet/types"
+        "k8s.io/kubernetes/pkg/kubelet/util/format"
+        httpprobe "k8s.io/kubernetes/pkg/probe/http"
+        "k8s.io/kubernetes/pkg/security/apparmor"
+)
+
+const (
+        maxRespBodyLength = 10 * 1 &lt;&lt; 10 // 10KB
+)
+
+type handlerRunner struct {
+        httpDoer         kubetypes.HTTPDoer
+        commandRunner    kubecontainer.CommandRunner
+        containerManager podStatusProvider
+        eventRecorder    record.EventRecorder
+}
+
+type podStatusProvider interface {
+        GetPodStatus(ctx context.Context, uid types.UID, name, namespace string) (*kubecontainer.PodStatus, error)
+}
+
+// NewHandlerRunner returns a configured lifecycle handler for a container.
+func NewHandlerRunner(httpDoer kubetypes.HTTPDoer, commandRunner kubecontainer.CommandRunner, containerManager podStatusProvider, eventRecorder record.EventRecorder) kubecontainer.HandlerRunner <span class="cov8" title="1">{
+        return &amp;handlerRunner{
+                httpDoer:         httpDoer,
+                commandRunner:    commandRunner,
+                containerManager: containerManager,
+                eventRecorder:    eventRecorder,
+        }
+}</span>
+
+func (hr *handlerRunner) Run(ctx context.Context, containerID kubecontainer.ContainerID, pod *v1.Pod, container *v1.Container, handler *v1.LifecycleHandler) (string, error) <span class="cov8" title="1">{
+        switch </span>{
+        case handler.Exec != nil:<span class="cov8" title="1">
+                var msg string
+                // TODO(tallclair): Pass a proper timeout value.
+                output, err := hr.commandRunner.RunInContainer(ctx, containerID, handler.Exec.Command, 0)
+                if err != nil </span><span class="cov8" title="1">{
+                        msg = fmt.Sprintf("Exec lifecycle hook (%v) for Container %q in Pod %q failed - error: %v, message: %q", handler.Exec.Command, container.Name, format.Pod(pod), err, string(output))
+                        klog.V(1).ErrorS(err, "Exec lifecycle hook for Container in Pod failed", "execCommand", handler.Exec.Command, "containerName", container.Name, "pod", klog.KObj(pod), "message", string(output))
+                }</span>
+                <span class="cov8" title="1">return msg, err</span>
+        case handler.HTTPGet != nil:<span class="cov8" title="1">
+                err := hr.runHTTPHandler(ctx, pod, container, handler, hr.eventRecorder)
+                var msg string
+                if err != nil </span><span class="cov8" title="1">{
+                        msg = fmt.Sprintf("HTTP lifecycle hook (%s) for Container %q in Pod %q failed - error: %v", handler.HTTPGet.Path, container.Name, format.Pod(pod), err)
+                        klog.V(1).ErrorS(err, "HTTP lifecycle hook for Container in Pod failed", "path", handler.HTTPGet.Path, "containerName", container.Name, "pod", klog.KObj(pod))
+                }</span>
+                <span class="cov8" title="1">return msg, err</span>
+        case handler.Sleep != nil:<span class="cov8" title="1">
+                err := hr.runSleepHandler(ctx, handler.Sleep.Seconds)
+                var msg string
+                if err != nil </span><span class="cov8" title="1">{
+                        msg = fmt.Sprintf("Sleep lifecycle hook (%d) for Container %q in Pod %q failed - error: %v", handler.Sleep.Seconds, container.Name, format.Pod(pod), err)
+                        klog.V(1).ErrorS(err, "Sleep lifecycle hook for Container in Pod failed", "sleepSeconds", handler.Sleep.Seconds, "containerName", container.Name, "pod", klog.KObj(pod))
+                }</span>
+                <span class="cov8" title="1">return msg, err</span>
+        default:<span class="cov8" title="1">
+                err := fmt.Errorf("invalid handler: %v", handler)
+                msg := fmt.Sprintf("Cannot run handler: %v", err)
+                klog.ErrorS(err, "Cannot run handler")
+                return msg, err</span>
+        }
+}
+
+// resolvePort attempts to turn an IntOrString port reference into a concrete port number.
+// If portReference has an int value, it is treated as a literal, and simply returns that value.
+// If portReference is a string, an attempt is first made to parse it as an integer.  If that fails,
+// an attempt is made to find a port with the same name in the container spec.
+// If a port with the same name is found, it's ContainerPort value is returned.  If no matching
+// port is found, an error is returned.
+func resolvePort(portReference intstr.IntOrString, container *v1.Container) (int, error) <span class="cov8" title="1">{
+        if portReference.Type == intstr.Int </span><span class="cov0" title="0">{
+                return portReference.IntValue(), nil
+        }</span>
+        <span class="cov8" title="1">portName := portReference.StrVal
+        port, err := strconv.Atoi(portName)
+        if err == nil </span><span class="cov8" title="1">{
+                return port, nil
+        }</span>
+        <span class="cov8" title="1">for _, portSpec := range container.Ports </span><span class="cov8" title="1">{
+                if portSpec.Name == portName </span><span class="cov8" title="1">{
+                        return int(portSpec.ContainerPort), nil
+                }</span>
+        }
+        <span class="cov8" title="1">return -1, fmt.Errorf("couldn't find port: %v in %v", portReference, container)</span>
+}
+
+func (hr *handlerRunner) runSleepHandler(ctx context.Context, seconds int64) error <span class="cov8" title="1">{
+        if !utilfeature.DefaultFeatureGate.Enabled(features.PodLifecycleSleepAction) </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov8" title="1">c := time.After(time.Duration(seconds) * time.Second)
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov8" title="1">
+                // unexpected termination
+                metrics.LifecycleHandlerSleepTerminated.Inc()
+                return fmt.Errorf("container terminated before sleep hook finished")</span>
+        case &lt;-c:<span class="cov8" title="1">
+                return nil</span>
+        }
+}
+
+func (hr *handlerRunner) runHTTPHandler(ctx context.Context, pod *v1.Pod, container *v1.Container, handler *v1.LifecycleHandler, eventRecorder record.EventRecorder) error <span class="cov8" title="1">{
+        host := handler.HTTPGet.Host
+        podIP := host
+        if len(host) == 0 </span><span class="cov8" title="1">{
+                status, err := hr.containerManager.GetPodStatus(ctx, pod.UID, pod.Name, pod.Namespace)
+                if err != nil </span><span class="cov0" title="0">{
+                        klog.ErrorS(err, "Unable to get pod info, event handlers may be invalid.", "pod", klog.KObj(pod))
+                        return err
+                }</span>
+                <span class="cov8" title="1">if len(status.IPs) == 0 </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to find networking container: %v", status)
+                }</span>
+                <span class="cov8" title="1">host = status.IPs[0]
+                podIP = host</span>
+        }
+
+        <span class="cov8" title="1">req, err := httpprobe.NewRequestForHTTPGetAction(handler.HTTPGet, container, podIP, "lifecycle")
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">resp, err := hr.httpDoer.Do(req)
+        discardHTTPRespBody(resp)
+
+        if isHTTPResponseError(err) </span><span class="cov8" title="1">{
+                klog.V(1).ErrorS(err, "HTTPS request to lifecycle hook got HTTP response, retrying with HTTP.", "pod", klog.KObj(pod), "host", req.URL.Host)
+
+                req := req.Clone(context.Background())
+                req.URL.Scheme = "http"
+                req.Header.Del("Authorization")
+                resp, httpErr := hr.httpDoer.Do(req)
+
+                // clear err since the fallback succeeded
+                if httpErr == nil </span><span class="cov8" title="1">{
+                        metrics.LifecycleHandlerHTTPFallbacks.Inc()
+                        if eventRecorder != nil </span><span class="cov8" title="1">{
+                                // report the fallback with an event
+                                eventRecorder.Event(pod, v1.EventTypeWarning, "LifecycleHTTPFallback", fmt.Sprintf("request to HTTPS lifecycle hook %s got HTTP response, retry with HTTP succeeded", req.URL.Host))
+                        }</span>
+                        <span class="cov8" title="1">err = nil</span>
+                }
+                <span class="cov8" title="1">discardHTTPRespBody(resp)</span>
+        }
+        <span class="cov8" title="1">return err</span>
+}
+
+func discardHTTPRespBody(resp *http.Response) <span class="cov8" title="1">{
+        if resp == nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        // Ensure the response body is fully read and closed
+        // before we reconnect, so that we reuse the same TCP
+        // connection.
+        <span class="cov8" title="1">defer resp.Body.Close()
+
+        if resp.ContentLength &lt;= maxRespBodyLength </span><span class="cov8" title="1">{
+                io.Copy(io.Discard, &amp;io.LimitedReader{R: resp.Body, N: maxRespBodyLength})
+        }</span>
+}
+
+// NewAppArmorAdmitHandler returns a PodAdmitHandler which is used to evaluate
+// if a pod can be admitted from the perspective of AppArmor.
+func NewAppArmorAdmitHandler(validator apparmor.Validator) PodAdmitHandler <span class="cov0" title="0">{
+        return &amp;appArmorAdmitHandler{
+                Validator: validator,
+        }
+}</span>
+
+type appArmorAdmitHandler struct {
+        apparmor.Validator
+}
+
+func (a *appArmorAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult <span class="cov0" title="0">{
+        // If the pod is already running or terminated, no need to recheck AppArmor.
+        if attrs.Pod.Status.Phase != v1.PodPending </span><span class="cov0" title="0">{
+                return PodAdmitResult{Admit: true}
+        }</span>
+
+        <span class="cov0" title="0">err := a.Validate(attrs.Pod)
+        if err == nil </span><span class="cov0" title="0">{
+                return PodAdmitResult{Admit: true}
+        }</span>
+        <span class="cov0" title="0">return PodAdmitResult{
+                Admit:   false,
+                Reason:  "AppArmor",
+                Message: fmt.Sprintf("Cannot enforce AppArmor: %v", err),
+        }</span>
+}
+
+func isHTTPResponseError(err error) bool <span class="cov8" title="1">{
+        if err == nil </span><span class="cov8" title="1">{
+                return false
+        }</span>
+        <span class="cov8" title="1">urlErr := &amp;url.Error{}
+        if !errors.As(err, &amp;urlErr) </span><span class="cov8" title="1">{
+                return false
+        }</span>
+        <span class="cov8" title="1">return strings.Contains(urlErr.Err.Error(), "server gave HTTP response to HTTPS client")</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">/*
+Copyright 2016 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package lifecycle
+
+import "k8s.io/api/core/v1"
+
+// PodAdmitAttributes is the context for a pod admission decision.
+// The member fields of this struct should never be mutated.
+type PodAdmitAttributes struct {
+        // the pod to evaluate for admission
+        Pod *v1.Pod
+        // all pods bound to the kubelet excluding the pod being evaluated
+        OtherPods []*v1.Pod
+}
+
+// PodAdmitResult provides the result of a pod admission decision.
+type PodAdmitResult struct {
+        // if true, the pod should be admitted.
+        Admit bool
+        // a brief single-word reason why the pod could not be admitted.
+        Reason string
+        // a brief message explaining why the pod could not be admitted.
+        Message string
+}
+
+// PodAdmitHandler is notified during pod admission.
+type PodAdmitHandler interface {
+        // Admit evaluates if a pod can be admitted.
+        Admit(attrs *PodAdmitAttributes) PodAdmitResult
+}
+
+// PodAdmitTarget maintains a list of handlers to invoke.
+type PodAdmitTarget interface {
+        // AddPodAdmitHandler adds the specified handler.
+        AddPodAdmitHandler(a PodAdmitHandler)
+}
+
+// PodSyncLoopHandler is invoked during each sync loop iteration.
+type PodSyncLoopHandler interface {
+        // ShouldSync returns true if the pod needs to be synced.
+        // This operation must return immediately as its called for each pod.
+        // The provided pod should never be modified.
+        ShouldSync(pod *v1.Pod) bool
+}
+
+// PodSyncLoopTarget maintains a list of handlers to pod sync loop.
+type PodSyncLoopTarget interface {
+        // AddPodSyncLoopHandler adds the specified handler.
+        AddPodSyncLoopHandler(a PodSyncLoopHandler)
+}
+
+// ShouldEvictResponse provides the result of a should evict request.
+type ShouldEvictResponse struct {
+        // if true, the pod should be evicted.
+        Evict bool
+        // a brief CamelCase reason why the pod should be evicted.
+        Reason string
+        // a brief message why the pod should be evicted.
+        Message string
+}
+
+// PodSyncHandler is invoked during each sync pod operation.
+type PodSyncHandler interface {
+        // ShouldEvict is invoked during each sync pod operation to determine
+        // if the pod should be evicted from the kubelet.  If so, the pod status
+        // is updated to mark its phase as failed with the provided reason and message,
+        // and the pod is immediately killed.
+        // This operation must return immediately as its called for each sync pod.
+        // The provided pod should never be modified.
+        ShouldEvict(pod *v1.Pod) ShouldEvictResponse
+}
+
+// PodSyncTarget maintains a list of handlers to pod sync.
+type PodSyncTarget interface {
+        // AddPodSyncHandler adds the specified handler
+        AddPodSyncHandler(a PodSyncHandler)
+}
+
+// PodLifecycleTarget groups a set of lifecycle interfaces for convenience.
+type PodLifecycleTarget interface {
+        PodAdmitTarget
+        PodSyncLoopTarget
+        PodSyncTarget
+}
+
+// PodAdmitHandlers maintains a list of handlers to pod admission.
+type PodAdmitHandlers []PodAdmitHandler
+
+// AddPodAdmitHandler adds the specified observer.
+func (handlers *PodAdmitHandlers) AddPodAdmitHandler(a PodAdmitHandler) <span class="cov0" title="0">{
+        *handlers = append(*handlers, a)
+}</span>
+
+// PodSyncLoopHandlers maintains a list of handlers to pod sync loop.
+type PodSyncLoopHandlers []PodSyncLoopHandler
+
+// AddPodSyncLoopHandler adds the specified observer.
+func (handlers *PodSyncLoopHandlers) AddPodSyncLoopHandler(a PodSyncLoopHandler) <span class="cov0" title="0">{
+        *handlers = append(*handlers, a)
+}</span>
+
+// PodSyncHandlers maintains a list of handlers to pod sync.
+type PodSyncHandlers []PodSyncHandler
+
+// AddPodSyncHandler adds the specified handler.
+func (handlers *PodSyncHandlers) AddPodSyncHandler(a PodSyncHandler) <span class="cov0" title="0">{
+        *handlers = append(*handlers, a)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">/*
+Copyright 2016 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package lifecycle
+
+import (
+        "fmt"
+        "runtime"
+
+        v1 "k8s.io/api/core/v1"
+        utilfeature "k8s.io/apiserver/pkg/util/feature"
+        "k8s.io/component-helpers/scheduling/corev1"
+        "k8s.io/klog/v2"
+        v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
+        "k8s.io/kubernetes/pkg/features"
+        "k8s.io/kubernetes/pkg/kubelet/types"
+        "k8s.io/kubernetes/pkg/scheduler"
+        schedulerframework "k8s.io/kubernetes/pkg/scheduler/framework"
+        "k8s.io/kubernetes/pkg/scheduler/framework/plugins/tainttoleration"
+)
+
+type getNodeAnyWayFuncType func() (*v1.Node, error)
+
+type pluginResourceUpdateFuncType func(*schedulerframework.NodeInfo, *PodAdmitAttributes) error
+
+// AdmissionFailureHandler is an interface which defines how to deal with a failure to admit a pod.
+// This allows for the graceful handling of pod admission failure.
+type AdmissionFailureHandler interface {
+        HandleAdmissionFailure(admitPod *v1.Pod, failureReasons []PredicateFailureReason) ([]PredicateFailureReason, error)
+}
+
+type predicateAdmitHandler struct {
+        getNodeAnyWayFunc        getNodeAnyWayFuncType
+        pluginResourceUpdateFunc pluginResourceUpdateFuncType
+        admissionFailureHandler  AdmissionFailureHandler
+}
+
+var _ PodAdmitHandler = &amp;predicateAdmitHandler{}
+
+// NewPredicateAdmitHandler returns a PodAdmitHandler which is used to evaluates
+// if a pod can be admitted from the perspective of predicates.
+func NewPredicateAdmitHandler(getNodeAnyWayFunc getNodeAnyWayFuncType, admissionFailureHandler AdmissionFailureHandler, pluginResourceUpdateFunc pluginResourceUpdateFuncType) PodAdmitHandler <span class="cov0" title="0">{
+        return &amp;predicateAdmitHandler{
+                getNodeAnyWayFunc,
+                pluginResourceUpdateFunc,
+                admissionFailureHandler,
+        }
+}</span>
+
+func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult <span class="cov0" title="0">{
+        node, err := w.getNodeAnyWayFunc()
+        if err != nil </span><span class="cov0" title="0">{
+                klog.ErrorS(err, "Cannot get Node info")
+                return PodAdmitResult{
+                        Admit:   false,
+                        Reason:  "InvalidNodeInfo",
+                        Message: "Kubelet cannot get node info.",
+                }
+        }</span>
+        <span class="cov0" title="0">admitPod := attrs.Pod
+
+        // perform the checks that preemption will not help first to avoid meaningless pod eviction
+        if rejectPodAdmissionBasedOnOSSelector(admitPod, node) </span><span class="cov0" title="0">{
+                return PodAdmitResult{
+                        Admit:   false,
+                        Reason:  "PodOSSelectorNodeLabelDoesNotMatch",
+                        Message: "Failed to admit pod as the `kubernetes.io/os` label doesn't match node label",
+                }
+        }</span>
+        <span class="cov0" title="0">if rejectPodAdmissionBasedOnOSField(admitPod) </span><span class="cov0" title="0">{
+                return PodAdmitResult{
+                        Admit:   false,
+                        Reason:  "PodOSNotSupported",
+                        Message: "Failed to admit pod as the OS field doesn't match node OS",
+                }
+        }</span>
+
+        <span class="cov0" title="0">pods := attrs.OtherPods
+        nodeInfo := schedulerframework.NewNodeInfo(pods...)
+        nodeInfo.SetNode(node)
+
+        // TODO: Remove this after the SidecarContainers feature gate graduates to GA.
+        if !utilfeature.DefaultFeatureGate.Enabled(features.SidecarContainers) </span><span class="cov0" title="0">{
+                for _, c := range admitPod.Spec.InitContainers </span><span class="cov0" title="0">{
+                        if types.IsRestartableInitContainer(&amp;c) </span><span class="cov0" title="0">{
+                                message := fmt.Sprintf("Init container %q may not have a non-default restartPolicy", c.Name)
+                                klog.InfoS("Failed to admit pod", "pod", klog.KObj(admitPod), "message", message)
+                                return PodAdmitResult{
+                                        Admit:   false,
+                                        Reason:  "InitContainerRestartPolicyForbidden",
+                                        Message: message,
+                                }
+                        }</span>
+                }
+        }
+
+        // ensure the node has enough plugin resources for that required in pods
+        <span class="cov0" title="0">if err = w.pluginResourceUpdateFunc(nodeInfo, attrs); err != nil </span><span class="cov0" title="0">{
+                message := fmt.Sprintf("Update plugin resources failed due to %v, which is unexpected.", err)
+                klog.InfoS("Failed to admit pod", "pod", klog.KObj(admitPod), "message", message)
+                return PodAdmitResult{
+                        Admit:   false,
+                        Reason:  "UnexpectedAdmissionError",
+                        Message: message,
+                }
+        }</span>
+
+        // Remove the requests of the extended resources that are missing in the
+        // node info. This is required to support cluster-level resources, which
+        // are extended resources unknown to nodes.
+        //
+        // Caveat: If a pod was manually bound to a node (e.g., static pod) where a
+        // node-level extended resource it requires is not found, then kubelet will
+        // not fail admission while it should. This issue will be addressed with
+        // the Resource Class API in the future.
+        <span class="cov0" title="0">podWithoutMissingExtendedResources := removeMissingExtendedResources(admitPod, nodeInfo)
+
+        reasons := generalFilter(podWithoutMissingExtendedResources, nodeInfo)
+        fit := len(reasons) == 0
+        if !fit </span><span class="cov0" title="0">{
+                reasons, err = w.admissionFailureHandler.HandleAdmissionFailure(admitPod, reasons)
+                fit = len(reasons) == 0 &amp;&amp; err == nil
+                if err != nil </span><span class="cov0" title="0">{
+                        message := fmt.Sprintf("Unexpected error while attempting to recover from admission failure: %v", err)
+                        klog.InfoS("Failed to admit pod, unexpected error while attempting to recover from admission failure", "pod", klog.KObj(admitPod), "err", err)
+                        return PodAdmitResult{
+                                Admit:   fit,
+                                Reason:  "UnexpectedAdmissionError",
+                                Message: message,
+                        }
+                }</span>
+        }
+        <span class="cov0" title="0">if !fit </span><span class="cov0" title="0">{
+                var reason string
+                var message string
+                if len(reasons) == 0 </span><span class="cov0" title="0">{
+                        message = fmt.Sprint("GeneralPredicates failed due to unknown reason, which is unexpected.")
+                        klog.InfoS("Failed to admit pod: GeneralPredicates failed due to unknown reason, which is unexpected", "pod", klog.KObj(admitPod))
+                        return PodAdmitResult{
+                                Admit:   fit,
+                                Reason:  "UnknownReason",
+                                Message: message,
+                        }
+                }</span>
+                // If there are failed predicates, we only return the first one as a reason.
+                <span class="cov0" title="0">r := reasons[0]
+                switch re := r.(type) </span>{
+                case *PredicateFailureError:<span class="cov0" title="0">
+                        reason = re.PredicateName
+                        message = re.Error()
+                        klog.V(2).InfoS("Predicate failed on Pod", "pod", klog.KObj(admitPod), "err", message)</span>
+                case *InsufficientResourceError:<span class="cov0" title="0">
+                        reason = fmt.Sprintf("OutOf%s", re.ResourceName)
+                        message = re.Error()
+                        klog.V(2).InfoS("Predicate failed on Pod", "pod", klog.KObj(admitPod), "err", message)</span>
+                default:<span class="cov0" title="0">
+                        reason = "UnexpectedPredicateFailureType"
+                        message = fmt.Sprintf("GeneralPredicates failed due to %v, which is unexpected.", r)
+                        klog.InfoS("Failed to admit pod", "pod", klog.KObj(admitPod), "err", message)</span>
+                }
+                <span class="cov0" title="0">return PodAdmitResult{
+                        Admit:   fit,
+                        Reason:  reason,
+                        Message: message,
+                }</span>
+        }
+        <span class="cov0" title="0">return PodAdmitResult{
+                Admit: true,
+        }</span>
+}
+
+// rejectPodAdmissionBasedOnOSSelector rejects pod if it's nodeSelector doesn't match
+// We expect the kubelet status reconcile which happens every 10sec to update the node labels if there is a mismatch.
+func rejectPodAdmissionBasedOnOSSelector(pod *v1.Pod, node *v1.Node) bool <span class="cov8" title="1">{
+        labels := node.Labels
+        osName, osLabelExists := labels[v1.LabelOSStable]
+        if !osLabelExists || osName != runtime.GOOS </span><span class="cov8" title="1">{
+                if len(labels) == 0 </span><span class="cov0" title="0">{
+                        labels = make(map[string]string)
+                }</span>
+                <span class="cov8" title="1">labels[v1.LabelOSStable] = runtime.GOOS</span>
+        }
+        <span class="cov8" title="1">podLabelSelector, podOSLabelExists := pod.Labels[v1.LabelOSStable]
+        if !podOSLabelExists </span><span class="cov8" title="1">{
+                // If the labelselector didn't exist, let's keep the current behavior as is
+                return false
+        }</span> else<span class="cov8" title="1"> if podOSLabelExists &amp;&amp; podLabelSelector != labels[v1.LabelOSStable] </span><span class="cov8" title="1">{
+                return true
+        }</span>
+        <span class="cov8" title="1">return false</span>
+}
+
+// rejectPodAdmissionBasedOnOSField rejects pods if their OS field doesn't match runtime.GOOS.
+// TODO: Relax this restriction when we start supporting LCOW in kubernetes where podOS may not match
+// node's OS.
+func rejectPodAdmissionBasedOnOSField(pod *v1.Pod) bool <span class="cov8" title="1">{
+        if pod.Spec.OS == nil </span><span class="cov8" title="1">{
+                return false
+        }</span>
+        // If the pod OS doesn't match runtime.GOOS return false
+        <span class="cov8" title="1">return string(pod.Spec.OS.Name) != runtime.GOOS</span>
+}
+
+func removeMissingExtendedResources(pod *v1.Pod, nodeInfo *schedulerframework.NodeInfo) *v1.Pod <span class="cov8" title="1">{
+        podCopy := pod.DeepCopy()
+        for i, c := range pod.Spec.Containers </span><span class="cov8" title="1">{
+                // We only handle requests in Requests but not Limits because the
+                // PodFitsResources predicate, to which the result pod will be passed,
+                // does not use Limits.
+                podCopy.Spec.Containers[i].Resources.Requests = make(v1.ResourceList)
+                for rName, rQuant := range c.Resources.Requests </span><span class="cov8" title="1">{
+                        if v1helper.IsExtendedResourceName(rName) </span><span class="cov8" title="1">{
+                                if _, found := nodeInfo.Allocatable.ScalarResources[rName]; !found </span><span class="cov8" title="1">{
+                                        continue</span>
+                                }
+                        }
+                        <span class="cov8" title="1">podCopy.Spec.Containers[i].Resources.Requests[rName] = rQuant</span>
+                }
+        }
+        <span class="cov8" title="1">return podCopy</span>
+}
+
+// InsufficientResourceError is an error type that indicates what kind of resource limit is
+// hit and caused the unfitting failure.
+type InsufficientResourceError struct {
+        ResourceName v1.ResourceName
+        Requested    int64
+        Used         int64
+        Capacity     int64
+}
+
+func (e *InsufficientResourceError) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Node didn't have enough resource: %s, requested: %d, used: %d, capacity: %d",
+                e.ResourceName, e.Requested, e.Used, e.Capacity)
+}</span>
+
+// PredicateFailureReason interface represents the failure reason of a predicate.
+type PredicateFailureReason interface {
+        GetReason() string
+}
+
+// GetReason returns the reason of the InsufficientResourceError.
+func (e *InsufficientResourceError) GetReason() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Insufficient %v", e.ResourceName)
+}</span>
+
+// GetInsufficientAmount returns the amount of the insufficient resource of the error.
+func (e *InsufficientResourceError) GetInsufficientAmount() int64 <span class="cov0" title="0">{
+        return e.Requested - (e.Capacity - e.Used)
+}</span>
+
+// PredicateFailureError describes a failure error of predicate.
+type PredicateFailureError struct {
+        PredicateName string
+        PredicateDesc string
+}
+
+func (e *PredicateFailureError) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("Predicate %s failed", e.PredicateName)
+}</span>
+
+// GetReason returns the reason of the PredicateFailureError.
+func (e *PredicateFailureError) GetReason() string <span class="cov0" title="0">{
+        return e.PredicateDesc
+}</span>
+
+// generalFilter checks a group of filterings that the kubelet cares about.
+func generalFilter(pod *v1.Pod, nodeInfo *schedulerframework.NodeInfo) []PredicateFailureReason <span class="cov8" title="1">{
+        admissionResults := scheduler.AdmissionCheck(pod, nodeInfo, true)
+        var reasons []PredicateFailureReason
+        for _, r := range admissionResults </span><span class="cov8" title="1">{
+                if r.InsufficientResource != nil </span><span class="cov8" title="1">{
+                        reasons = append(reasons, &amp;InsufficientResourceError{
+                                ResourceName: r.InsufficientResource.ResourceName,
+                                Requested:    r.InsufficientResource.Requested,
+                                Used:         r.InsufficientResource.Used,
+                                Capacity:     r.InsufficientResource.Capacity,
+                        })
+                }</span> else<span class="cov8" title="1"> {
+                        reasons = append(reasons, &amp;PredicateFailureError{r.Name, r.Reason})
+                }</span>
+        }
+
+        // Check taint/toleration except for static pods
+        <span class="cov8" title="1">if !types.IsStaticPod(pod) </span><span class="cov8" title="1">{
+                _, isUntolerated := corev1.FindMatchingUntoleratedTaint(nodeInfo.Node().Spec.Taints, pod.Spec.Tolerations, func(t *v1.Taint) bool </span><span class="cov8" title="1">{
+                        // Kubelet is only interested in the NoExecute taint.
+                        return t.Effect == v1.TaintEffectNoExecute
+                }</span>)
+                <span class="cov8" title="1">if isUntolerated </span><span class="cov8" title="1">{
+                        reasons = append(reasons, &amp;PredicateFailureError{tainttoleration.Name, tainttoleration.ErrReasonNotMatch})
+                }</span>
+        }
+
+        <span class="cov8" title="1">return reasons</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
